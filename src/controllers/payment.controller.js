@@ -1,5 +1,5 @@
 // src/controllers/payment.controller.js
-import prisma from '../config/prisma.js';
+import { prisma } from '../config/prisma.js';
 
 export const simulatePayment = async (req, res) => {
     const { orderId } = req.params;
