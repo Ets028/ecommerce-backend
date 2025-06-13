@@ -10,7 +10,7 @@ Back-end RESTful API untuk aplikasi e-commerce. Dibuat menggunakan **Node.js**, 
 - 🛒 Keranjang belanja
 - 🧾 Checkout & pemesanan
 - 💳 Simulasi payment gateway
-- 📂 API dokumentasi lengkap di [`API_DOCUMENTATION.md`](./API_DOCUMENTATION.md)
+- 📂 API dokumentasi lengkap di [`API_DOCUMENTATION.md`](./docs/API_DOCUMENTATION.md)
 
 ---
 
