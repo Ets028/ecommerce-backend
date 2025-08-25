@@ -4,9 +4,10 @@
 
 ### 🔐 Register
 
-**POST** `/api/auth/register`
+**Endpoint:**
+`POST /api/auth/register`
 
-#### Request Body:
+**Request Body:**
 
 ```json
 {
@@ -16,20 +17,29 @@
 }
 ```
 
+---
+
 ### 🔐 Login
 
-**POST** `/api/auth/login`
+**Endpoint:**
+`POST /api/auth/login`
 
-#### Request Body:
+**Request Body:**
 
 ```json
 {
-  "email": "user@mail.com",
-  "password": "123456"
+    "message": "Login berhasil.",
+    "user": {
+        "id": "cmeqjohel0000flatzc6jmd86",
+        "email": "admin@mail.com"
+    },
+    "token": "token..."
 }
 ```
 
-📦 Response: `Set-Cookie` berisi token JWT
+📦 **Response:**
+
+* Set-Cookie berisi token **JWT**
 
 ---
 
@@ -37,7 +47,8 @@
 
 ### 👤 Get Profile
 
-**GET** `/api/user/profile`
+**Endpoint:**
+`GET /api/user/profile`
 🔒 Protected (User)
 
 ---
@@ -46,15 +57,44 @@
 
 ### 📔 List Products
 
-**GET** `/api/products`
+**Endpoint:**
+`GET /api/products`
 📖 Public
+
+**Response:**
+
+```json
+[
+  {
+        "id": "cme892...",
+        "name": "T-Shirt Polos Katun",
+        "description": "Kaos nyaman bahan katun combed 30s, cocok untuk sehari-hari.",
+        "price": 75000,
+        "stock": 50,
+        "imageUrl": "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=2080",
+        "createdAt": "2025-08-25T03:15:38.419Z",
+        "updatedAt": "2025-08-25T03:15:38.419Z",
+        "userId": "cmeqjohel0000flatzc6jmd86",
+        "categoryId": "cme3...",
+        "category": {
+            "id": "cme3...",
+            "name": "Pakaian",
+            "createdAt": "2025-08-25T03:15:38.410Z",
+            "updatedAt": "2025-08-25T03:15:38.410Z"
+        }
+    }
+]
+```
+
+---
 
 ### ➕ Add Product
 
-**POST** `/api/products`
-🔒 Protected (user)
+**Endpoint:**
+`POST /api/products`
+🔒 Protected (User)
 
-#### Body:
+**Request Body:**
 
 ```json
 {
@@ -67,14 +107,23 @@
 }
 ```
 
+📌 **Catatan:**
+Produk otomatis dikaitkan dengan pengguna yang sedang login (`userId` dari token otentikasi).
+
+---
+
 ### 🔀 Update Product
 
-**PUT** `/api/products/:id`
+**Endpoint:**
+`PUT /api/products/:id`
 🔒 Admin only
+
+---
 
 ### ❌ Delete Product
 
-**DELETE** `/api/products/:id`
+**Endpoint:**
+`DELETE /api/products/:id`
 🔒 Admin only
 
 ---
@@ -83,15 +132,19 @@
 
 ### 📔 List Categories
 
-**GET** `/api/categories`
+**Endpoint:**
+`GET /api/categories`
 📖 Public
+
+---
 
 ### ➕ Add Category
 
-**POST** `/api/categories`
+**Endpoint:**
+`POST /api/categories`
 🔒 Admin only
 
-#### Body:
+**Request Body:**
 
 ```json
 {
@@ -105,26 +158,33 @@
 
 ### 📔 Get My Cart
 
-**GET** `/api/cart`
+**Endpoint:**
+`GET /api/cart`
 🔒 Protected (User)
+
+---
 
 ### ➕ Add to Cart
 
-**POST** `/api/cart`
+**Endpoint:**
+`POST /api/cart`
 🔒 Protected
 
-#### Body:
+**Request Body:**
 
 ```json
 {
-  "productId": 1,
+  "productId": "cwea..",
   "quantity": 2
 }
 ```
 
+---
+
 ### ❌ Remove from Cart
 
-**DELETE** `/api/cart/remove/:productId`
+**Endpoint:**
+`DELETE /api/cart/remove/:productId`
 🔒 Protected
 
 ---
@@ -133,33 +193,48 @@
 
 ### 📦 Create Order from Cart
 
-**POST** `/api/orders`
+**Endpoint:**
+`POST /api/orders`
 🔒 Protected (User)
+
+---
 
 ### 📔 Get My Orders
 
-**GET** `/api/orders`
+**Endpoint:**
+`GET /api/orders`
 🔒 Protected
+
+---
 
 ### 📋 Admin: Get All Orders
 
-**GET** `/api/orders/admin/all`
+**Endpoint:**
+`GET /api/orders/admin/all`
 🔒 Admin only
 
-### ⚙️ Admin: Update Status
+---
 
-**PUT** `/api/orders/:id/status`
+### ⚙️ Admin: Update Order Status
+
+**Endpoint:**
+`PUT /api/orders/:id/status`
 🔒 Admin only
 
-#### Body:
+**Request Body:**
 
 ```json
-{ "status": "shipped" }
+{
+  "status": "shipped"
+}
 ```
+
+---
 
 ### ❌ Admin: Delete Order
 
-**DELETE** `/api/orders/admin/:id`
+**Endpoint:**
+`DELETE /api/orders/admin/:id`
 🔒 Admin only
 
 ---
@@ -168,29 +243,44 @@
 
 ### 💸 Simulate Payment
 
-**POST** `/api/payment/:orderId/simulate`
+**Endpoint:**
+`POST /api/payment/:orderId/simulate`
 🔒 Protected (User)
 
-- Order dengan `status: pending` dan `paymentStatus: pending`
-- Jika berhasil:
-  - `paymentStatus`: `paid`
-  - `paidAt`: timestamp sekarang
+📝 **Catatan:**
+
+* Order harus dalam status: `pending`
+* `paymentStatus`: `pending`
+
+Jika berhasil:
+
+```json
+{
+  "paymentStatus": "paid",
+  "paidAt": "<timestamp sekarang>"
+}
+```
 
 ---
 
 ## ⚠️ Middleware
 
-- `authRequired`: semua endpoint kecuali register/login perlu auth
-- `adminOnly`: validasi `req.user.role === 'admin'`
+* `authRequired`: Semua endpoint kecuali register/login memerlukan autentikasi.
+* `adminOnly`: Hanya bisa diakses oleh user dengan role `'admin'`.
 
 ---
 
 ## ✅ Status Kode
 
-- `200 OK` - Berhasil
-- `201 Created` - Data dibuat
-- `400 Bad Request` - Request salah
-- `401 Unauthorized` - Belum login / token invalid
-- `403 Forbidden` - Role tidak sesuai
-- `404 Not Found` - Data tidak ditemukan
-- `500 Server Error` - Gagal server
+| Kode | Arti                                         |
+| ---- | -------------------------------------------- |
+| 200  | OK - Berhasil                                |
+| 201  | Created - Data berhasil dibuat               |
+| 400  | Bad Request - Permintaan tidak valid         |
+| 401  | Unauthorized - Belum login / token salah     |
+| 403  | Forbidden - Akses ditolak (bukan admin/user) |
+| 404  | Not Found - Data tidak ditemukan             |
+| 500  | Server Error - Kesalahan dari server         |
+
+---
+

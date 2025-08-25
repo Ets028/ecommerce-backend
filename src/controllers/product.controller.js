@@ -29,12 +29,12 @@ export const createProduct = async (req, res) => {
                 price: parseFloat(price),
                 stock: parseInt(stock, 10),
                 imageUrl,
-                userId: req.user.userId, // Ambil userId dari token
-                categoryId: categoryId || null, // Jika tidak ada categoryId, set null
+                userId: req.user.userId, 
+                categoryId: categoryId || null,
             },
         });
 
-        res.status(201).json(product);
+        res.status(201).json({ message: "Produk berhasil dibuat.", product });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: "Terjadi kesalahan pada server." });
