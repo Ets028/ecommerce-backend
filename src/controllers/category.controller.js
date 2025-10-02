@@ -1,10 +1,10 @@
 import { 
     getAllCategories as getAllCategoriesService,
-    getRootCategories,
+    getRootCategories as getRootCategoriesService,
     getCategoryWithChildren,
     getAllCategoriesHierarchy,
     createCategory as createCategoryService,
-    updateCategory,
+    updateCategory as updateCategoryService,
     deleteCategory as deleteCategoryService,
     findCategoryById
 } from "../services/category.service.js";
@@ -16,10 +16,10 @@ export const getAllCategories = async (req, res, next) => {
         res.status(200).json({
             success: true,
             data: categories,
-            message: "Kategori berhasil diambil."
+            message: "Categories retrieved successfully."
         });
     } catch (err) {
-        next(new AppError("Gagal mengambil kategori.", 500));
+        next(new AppError("Failed to retrieve categories.", 500));
     }
 };
 
@@ -30,24 +30,24 @@ export const getAllCategoriesWithHierarchy = async (req, res, next) => {
         res.status(200).json({
             success: true,
             data: categories,
-            message: "Kategori dengan hierarki berhasil diambil."
+            message: "Categories with hierarchy retrieved successfully."
         });
     } catch (err) {
-        next(new AppError("Gagal mengambil kategori dengan hierarki.", 500));
+        next(new AppError("Failed to retrieve categories with hierarchy.", 500));
     }
 };
 
 // Get root categories (categories without parents)
 export const getRootCategories = async (req, res, next) => {
     try {
-        const categories = await getRootCategories();
+        const categories = await getRootCategoriesService();
         res.status(200).json({
             success: true,
             data: categories,
-            message: "Kategori root berhasil diambil."
+            message: "Root categories retrieved successfully."
         });
     } catch (err) {
-        next(new AppError("Gagal mengambil kategori root.", 500));
+        next(new AppError("Failed to retrieve root categories.", 500));
     }
 };
 
@@ -59,16 +59,16 @@ export const getCategoryById = async (req, res, next) => {
         const category = await getCategoryWithChildren(id);
 
         if (!category) {
-            return next(new AppError("Kategori tidak ditemukan.", 404));
+            return next(new AppError("Category not found.", 404));
         }
 
         res.status(200).json({
             success: true,
             data: category,
-            message: "Kategori berhasil diambil."
+            message: "Category retrieved successfully."
         });
     } catch (err) {
-        next(new AppError("Gagal mengambil kategori.", 500));
+        next(new AppError("Failed to retrieve category.", 500));
     }
 };
 
@@ -80,7 +80,7 @@ export const createCategory = async (req, res, next) => {
         if (parentId) {
             const parentCategory = await findCategoryById(parentId);
             if (!parentCategory) {
-                return next(new AppError("Parent kategori tidak ditemukan.", 404));
+                return next(new AppError("Parent category not found.", 404));
             }
         }
 
@@ -89,10 +89,10 @@ export const createCategory = async (req, res, next) => {
         res.status(201).json({
             success: true,
             data: category,
-            message: "Kategori berhasil dibuat."
+            message: "Category created successfully."
         });
     } catch (err) {
-        next(new AppError("Gagal membuat kategori.", 500));
+        next(new AppError("Failed to create category.", 500));
     }
 };
 
@@ -105,22 +105,22 @@ export const updateCategory = async (req, res, next) => {
         if (parentId) {
             const parentCategory = await findCategoryById(parentId);
             if (!parentCategory) {
-                return next(new AppError("Parent kategori tidak ditemukan.", 404));
+                return next(new AppError("Parent category not found.", 404));
             }
         }
 
-        const category = await updateCategory(id, name, parentId);
+        const category = await updateCategoryService(id, name, parentId);
 
         res.status(200).json({
             success: true,
             data: category,
-            message: "Kategori berhasil diperbarui."
+            message: "Category updated successfully."
         });
     } catch (err) {
         if (err.message && err.message.includes('circular reference')) {
             return next(new AppError(err.message, 400));
         }
-        next(new AppError("Gagal memperbarui kategori.", 500));
+        next(new AppError("Failed to update category.", 500));
     }
 };
 
@@ -133,12 +133,12 @@ export const deleteCategory = async (req, res, next) => {
         res.status(200).json({
             success: true,
             data: null,
-            message: "Kategori berhasil dihapus."
+            message: "Category deleted successfully."
         });
     } catch (err) {
         if (err.message && err.message.includes('Cannot delete category with children')) {
             return next(new AppError(err.message, 400));
         }
-        next(new AppError("Gagal menghapus kategori.", 500));
+        next(new AppError("Failed to delete category.", 500));
     }
 };

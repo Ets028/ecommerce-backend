@@ -1,15 +1,19 @@
 # 💼 E-Commerce Backend API
 
-Back-end RESTful API untuk aplikasi e-commerce. Dibuat menggunakan **Node.js**, **Express**, dan **Prisma ORM**, dengan database **MySQL**.
+Back-end RESTful API untuk aplikasi e-commerce. Dibuat menggunakan **Node.js**, **Express**, dan **Prisma ORM**, dengan database **PostgreSQL**.
 
 ## 🚀 Fitur Utama
 
 - 🔐 Autentikasi menggunakan JWT (Token di cookie)
 - 👤 Manajemen user & admin (role-based access)
-- 📦 CRUD produk & kategori
+- 📦 CRUD produk & **hierarchical kategori** (parent-child relationships)
+- 🖼️ **Multiple images per produk** dengan upload lokal
 - 🛒 Keranjang belanja
 - 🧾 Checkout & pemesanan
 - 💳 Simulasi payment gateway
+- 🏗️ Arsitektur **service layer** yang terpisah dari controllers
+- 🛠️ **Utility functions** untuk validasi, autentikasi, dan response standar
+- ⚠️ **Global error handling** dengan AppError class
 - 📂 API dokumentasi lengkap di [`API_DOCUMENTATION.md`](./docs/API_DOCUMENTATION.md)
 
 ---
@@ -18,8 +22,9 @@ Back-end RESTful API untuk aplikasi e-commerce. Dibuat menggunakan **Node.js**, 
 
 - **Node.js + Express** – Backend framework
 - **Prisma ORM** – Query builder modern
-- **MySQL** – Relational database
+- **PostgreSQL** – Relational database
 - **JWT** – Autentikasi token
+- **Multer** – Upload file/images
 - **Cookie-parser** – Menyimpan token di cookie
 - **dotenv** – Mengelola environment variables
 
@@ -33,9 +38,12 @@ ecommerce-backend/
 │   └── API_DOCUMENTATION.md    # Dokumentasi endpoint lengkap
 ├── prisma/                     # Prisma schema & migrations
 ├── src/
+│   ├── config/                 # Konfigurasi (Prisma, Multer, dll)
 │   ├── controllers/            # Logic untuk tiap fitur (auth, products, orders, etc)
-│   ├── routes/                 # Routing Express
 │   ├── middlewares/            # Auth & role-check middleware
+│   ├── routes/                 # Routing Express
+│   ├── services/               # Logic bisnis terpisah dari controller
+│   ├── utils/                  # Utility functions (validasi, auth, error handling, dll)
 │   └── server.js               # Setup express app
 ├── .env                        # Environment variables
 └── README.md
@@ -63,8 +71,13 @@ npm install
 Buat file `.env` dan isi:
 
 ```env
-DATABASE_URL="mysql://user:password@localhost:3306/dbname"
-JWT_SECRET="secret_token"
+PORT=5000
+NODE_ENV=development
+DATABASE_URL="postgresql://username:password@localhost:5432/ecommerce_db"
+JWT_SECRET="your-super-secret-jwt-key-change-in-production"
+JWT_EXPIRES_IN="7d"
+CORS_ORIGIN="http://localhost:3000"
+BCRYPT_SALT_ROUNDS=10
 ```
 
 4. **Setup database dan Prisma:**

@@ -7,7 +7,7 @@ import {
     deleteProduct as deleteProductService,
     addProductImages,
     setMainImage,
-    deleteProductImage
+    deleteProductImage as deleteProductImageService
 } from "../services/product.service.js";
 import { AppError } from "../utils/errorHandler.js";
 import upload from "../config/multer.js";
@@ -23,18 +23,18 @@ export const createProduct = async (req, res, next) => {
     // Only body data, not image files yet in this version
     const { name, description, price, stock, categoryId } = req.body;
 
-    // Validasi input
+    // Validate input
     if (!name || !description || !price || !stock) {
-        return next(new AppError("Semua field wajib diisi.", 400));
+        return next(new AppError("All fields are required.", 400));
     }
 
     try {
-        // Cek apakah kategori ada
+        // Check if category exists
         if (categoryId) {
             const category = await findCategoryById(categoryId);
 
             if (!category) {
-                return next(new AppError("Kategori tidak ditemukan.", 404));
+                return next(new AppError("Category not found.", 404));
             }
         }
 
@@ -46,7 +46,7 @@ export const createProduct = async (req, res, next) => {
             imageUrls = [`/images/products/${req.file.filename}`];
         }
 
-        // Buat produk baru
+        // Create new product
         const product = await createProductService({
             name,
             description,
@@ -59,11 +59,11 @@ export const createProduct = async (req, res, next) => {
         res.status(201).json({
             success: true,
             data: product,
-            message: "Produk berhasil dibuat."
+            message: "Product created successfully."
         });
     } catch (error) {
         console.error(error);
-        next(new AppError("Terjadi kesalahan pada server.", 500));
+        next(new AppError("Server error occurred.", 500));
     }
 }
 
@@ -71,18 +71,18 @@ export const createProduct = async (req, res, next) => {
 export const createProductWithImages = async (req, res, next) => {
     const { name, description, price, stock, categoryId } = req.body;
 
-    // Validasi input
+    // Validate input
     if (!name || !description || !price || !stock) {
-        return next(new AppError("Semua field wajib diisi.", 400));
+        return next(new AppError("All fields are required.", 400));
     }
 
     try {
-        // Cek apakah kategori ada
+        // Check if category exists
         if (categoryId) {
             const category = await findCategoryById(categoryId);
 
             if (!category) {
-                return next(new AppError("Kategori tidak ditemukan.", 404));
+                return next(new AppError("Category not found.", 404));
             }
         }
 
@@ -93,7 +93,7 @@ export const createProductWithImages = async (req, res, next) => {
             imageUrls = req.files.map(file => `${req.protocol}://${req.get('host')}/images/products/${file.filename}`);
         }
 
-        // Buat produk baru dengan gambar
+        // Create new product with images
         const product = await createProductService({
             name,
             description,
@@ -106,27 +106,27 @@ export const createProductWithImages = async (req, res, next) => {
         res.status(201).json({
             success: true,
             data: product,
-            message: "Produk berhasil dibuat dengan gambar."
+            message: "Product created with images successfully."
         });
     } catch (error) {
         console.error(error);
-        next(new AppError("Terjadi kesalahan pada server.", 500));
+        next(new AppError("Server error occurred.", 500));
     }
 }
 
 export const getProducts = async (req, res, next) => {
     try {
-        // Ambil semua produk
+        // Get all products
         const products = await getAllProductsService();
 
         res.status(200).json({
             success: true,
             data: products,
-            message: "Produk berhasil diambil."
+            message: "Products retrieved successfully."
         });
     } catch (error) {
         console.error(error);
-        next(new AppError("Terjadi kesalahan pada server.", 500));
+        next(new AppError("Server error occurred.", 500));
     }
 }
 
@@ -134,21 +134,21 @@ export const getProductById = async (req, res, next) => {
     const { id } = req.params;
 
     try {
-        // Ambil produk berdasarkan ID
+        // Get product by ID
         const product = await getProductByIdService(id);
 
         if (!product) {
-            return next(new AppError("Produk tidak ditemukan.", 404));
+            return next(new AppError("Product not found.", 404));
         }
 
         res.status(200).json({
             success: true,
             data: product,
-            message: "Produk berhasil diambil."
+            message: "Product retrieved successfully."
         });
     } catch (error) {
         console.error(error);
-        next(new AppError("Terjadi kesalahan pada server.", 500));
+        next(new AppError("Server error occurred.", 500));
     }
 }
 
@@ -156,12 +156,12 @@ export const updateProduct = async (req, res, next) => {
     const { id } = req.params;
     const { name, description, price, stock } = req.body;
     try {
-        // Validasi input
+        // Validate input
         if (!name || !description || !price || !stock) {
-            return next(new AppError("Semua field wajib diisi.", 400));
+            return next(new AppError("All fields are required.", 400));
         }
 
-        // Update produk
+        // Update product
         const product = await updateProductService(id, {
             name,
             description,
@@ -172,11 +172,11 @@ export const updateProduct = async (req, res, next) => {
         res.status(200).json({
             success: true,
             data: product,
-            message: "Produk berhasil diperbarui."
+            message: "Product updated successfully."
         });
     } catch (error) {
         console.error(error);
-        next(new AppError("Terjadi kesalahan pada server.", 500));
+        next(new AppError("Server error occurred.", 500));
     }
 }
 
@@ -184,17 +184,17 @@ export const deleteProduct = async (req, res, next) => {
     const { id } = req.params;
 
     try {
-        // Hapus produk
+        // Delete product
         await deleteProductService(id);
 
         res.status(200).json({
             success: true,
             data: null,
-            message: "Produk berhasil dihapus."
+            message: "Product deleted successfully."
         });
     } catch (error) {
         console.error(error);
-        next(new AppError("Terjadi kesalahan pada server.", 500));
+        next(new AppError("Server error occurred.", 500));
     }
 }
 
@@ -209,7 +209,7 @@ export const addImagesToProduct = async (req, res, next) => {
             // Convert file paths to full URLs
             imageUrls = req.files.map(file => `${req.protocol}://${req.get('host')}/images/products/${file.filename}`);
         } else {
-            return next(new AppError("Tidak ada gambar yang diupload.", 400));
+            return next(new AppError("No images uploaded.", 400));
         }
 
         const updatedProduct = await addProductImages(productId, imageUrls);
@@ -217,11 +217,11 @@ export const addImagesToProduct = async (req, res, next) => {
         res.status(200).json({
             success: true,
             data: updatedProduct,
-            message: "Gambar berhasil ditambahkan ke produk."
+            message: "Images added to product successfully."
         });
     } catch (error) {
         console.error(error);
-        next(new AppError("Terjadi kesalahan pada server saat menambahkan gambar.", 500));
+        next(new AppError("Server error occurred while adding images.", 500));
     }
 };
 
@@ -235,11 +235,11 @@ export const setMainProductImage = async (req, res, next) => {
         res.status(200).json({
             success: true,
             data: updatedImage,
-            message: "Gambar utama berhasil diatur."
+            message: "Main image set successfully."
         });
     } catch (error) {
         console.error(error);
-        next(new AppError("Terjadi kesalahan pada server saat mengatur gambar utama.", 500));
+        next(new AppError("Server error occurred while setting main image.", 500));
     }
 };
 
@@ -248,15 +248,15 @@ export const deleteProductImage = async (req, res, next) => {
     const { imageId } = req.params;
 
     try {
-        await deleteProductImage(imageId);
+        await deleteProductImageService(imageId);
 
         res.status(200).json({
             success: true,
             data: null,
-            message: "Gambar produk berhasil dihapus."
+            message: "Product image deleted successfully."
         });
     } catch (error) {
         console.error(error);
-        next(new AppError("Terjadi kesalahan pada server saat menghapus gambar.", 500));
+        next(new AppError("Server error occurred while deleting image.", 500));
     }
 };

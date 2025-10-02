@@ -12,11 +12,11 @@ export const simulatePayment = async (req, res, next) => {
         const order = await getOrderByIdService(orderId);
 
         if (!order) {
-            return next(new AppError('Order tidak ditemukan', 404));
+            return next(new AppError('Order not found', 404));
         }
 
         if (order.paymentStatus === 'paid') {
-            return next(new AppError('Order sudah dibayar', 400));
+            return next(new AppError('Order already paid', 400));
         }
 
         const updatedOrder = await updateOrderPaymentStatus(
@@ -29,10 +29,10 @@ export const simulatePayment = async (req, res, next) => {
         res.status(200).json({
             success: true,
             data: updatedOrder,
-            message: 'Pembayaran berhasil disimulasikan'
+            message: 'Payment simulation successful'
         });
     } catch (err) {
         console.error(err);
-        next(new AppError('Gagal mensimulasikan pembayaran', 500));
+        next(new AppError('Failed to simulate payment', 500));
     }
 };

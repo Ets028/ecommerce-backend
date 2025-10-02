@@ -1,17 +1,25 @@
 import express from 'express';
 import { createOrder, getUserOrders, getOrderById, updateOrderStatus, getAllOrders, deleteOrder } from '../controllers/order.controller.js';
 import { authRequired } from '../middlewares/auth.middleware.js';
-import { isAdmin } from '../middlewares/admin.middleware.js';
+import { isAdmin, isUser } from '../middlewares/authorization.middleware.js';
+import { validateParams, validateBody } from '../middlewares/validation.middleware.js';
 
 const router = express.Router();
 
+// User routes
+router.post('/', authRequired, isUser, createOrder);
+router.get('/', authRequired, isUser, getUserOrders);
+router.get('/:id', authRequired, isUser, validateParams(['id']), getOrderById);
 
-router.post('/', authRequired, createOrder);
-router.get('/', authRequired, getUserOrders);
-router.get('/:id', authRequired, getOrderById);
-router.patch('/:id/status', authRequired, isAdmin, updateOrderStatus);
-router.get('/admin/all', authRequired, isAdmin, getAllOrders);
-router.delete('/admin/:id', authRequired, isAdmin, deleteOrder);
-
+// Admin routes
+router.patch('/:id/status', 
+    authRequired, 
+    isAdmin, 
+    validateParams(['id']), 
+    validateBody(['status']), 
+    updateOrderStatus
+);
+router.get('/admin', authRequired, isAdmin, getAllOrders);
+router.delete('/:id', authRequired, isAdmin, validateParams(['id']), deleteOrder);
 
 export default router;

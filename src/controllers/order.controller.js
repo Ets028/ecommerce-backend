@@ -17,7 +17,7 @@ export const createOrder = async (req, res, next) => {
     try {
         const cartItems = await getCartItemsByUserId(userId);
         if (cartItems.length === 0) {
-            return next(new AppError("Cart kosong", 400));
+            return next(new AppError("Cart is empty", 400));
         }
 
         //hitung total
@@ -28,7 +28,7 @@ export const createOrder = async (req, res, next) => {
         // cek stok
         for (const item of cartItems) {
             if (item.quantity > item.product.stock) {
-                return next(new AppError(`Stok produk "$(item.product.name)" tidak cukup`, 400));
+                return next(new AppError(`Insufficient stock for product "${item.product.name}"`, 400));
             }
         }
         // buat order
@@ -45,11 +45,11 @@ export const createOrder = async (req, res, next) => {
         res.status(201).json({
             success: true,
             data: order,
-            message: "Order berhasil dibuat."
+            message: "Order created successfully"
         });
     } catch (error) {
         console.error(error);
-        next(new AppError("Gagal Membuat Order", 500));
+        next(new AppError("Failed to create order", 500));
     }
 };
 
@@ -62,11 +62,11 @@ export const getUserOrders = async (req, res, next) => {
         res.status(200).json({
             success: true,
             data: orders,
-            message: "Daftar order berhasil diambil."
+            message: "User orders retrieved successfully"
         });
     } catch (error) {
         console.error(error);
-        next(new AppError("Gagal Mengambil Daftar Order", 500));
+        next(new AppError("Failed to retrieve user orders", 500));
     }
 };
 
@@ -78,17 +78,17 @@ export const getOrderById = async (req, res, next) => {
         const order = await getOrderByIdService(id);
 
         if (!order || order.userId !== userId) {
-            return next(new AppError("Order tidak ditemukan", 404));
+            return next(new AppError("Order not found", 404));
         }
 
         res.status(200).json({
             success: true,
             data: order,
-            message: "Order berhasil diambil."
+            message: "Order retrieved successfully"
         });
     } catch (error) {
         console.error(error);
-        next(new AppError("Gagal Mengambil Order", 500));
+        next(new AppError("Failed to retrieve order", 500));
     }
 };
 
@@ -99,7 +99,7 @@ export const updateOrderStatus = async (req, res, next) => {
     const allowedStatuses = ["pending", "paid", "shipped", "completed", "cancelled"];
 
     if (!allowedStatuses.includes(status)) {
-        return next(new AppError("Status tidak valid", 400));
+        return next(new AppError("Invalid status", 400));
     }
 
     try {
@@ -108,11 +108,11 @@ export const updateOrderStatus = async (req, res, next) => {
         res.status(200).json({
             success: true,
             data: updatedOrder,
-            message: "Status order berhasil diupdate"
+            message: "Order status updated successfully"
         });
     } catch (err) {
         console.error(err);
-        next(new AppError("Gagal update status order", 500));
+        next(new AppError("Failed to update order status", 500));
     }
 };
 
@@ -123,11 +123,11 @@ export const getAllOrders = async (req, res, next) => {
         res.status(200).json({
             success: true,
             data: orders,
-            message: "Daftar order berhasil diambil."
+            message: "Orders retrieved successfully"
         });
     } catch (err) {
         console.error(err);
-        next(new AppError('Gagal mengambil data order', 500));
+        next(new AppError('Failed to retrieve orders', 500));
     }
 };
 
@@ -138,7 +138,7 @@ export const deleteOrder = async (req, res, next) => {
         const order = await getOrderByIdService(id);
 
         if (!order) {
-            return next(new AppError("Order tidak ditemukan", 404));
+            return next(new AppError("Order not found", 404));
         }
 
         await deleteOrderService(id);
@@ -146,10 +146,10 @@ export const deleteOrder = async (req, res, next) => {
         res.status(200).json({
             success: true,
             data: null,
-            message: "Order berhasil dihapus"
+            message: "Order deleted successfully"
         });
     } catch (err) {
         console.error(err);
-        next(new AppError("Gagal menghapus order", 500));
+        next(new AppError("Failed to delete order", 500));
     }
 };

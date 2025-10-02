@@ -6,14 +6,26 @@ import {
     deleteCartItem
 } from '../controllers/cart.controller.js';
 import { authRequired } from '../middlewares/auth.middleware.js';
+import { isUser } from '../middlewares/authorization.middleware.js';
+import { validateBody, validateParams } from '../middlewares/validation.middleware.js';
 
 const router = express.Router();
 
-router.use(authRequired);
+router.use(authRequired, isUser);
 
 router.get('/', getUserCart);
-router.post('/add', addToCart);
-router.put('/:productId', updateCartItem);
-router.delete('/:productId', deleteCartItem);
+router.post('/add', 
+    validateBody(['productId', 'quantity']), 
+    addToCart
+);
+router.put('/:productId', 
+    validateParams(['productId']), 
+    validateBody(['quantity']), 
+    updateCartItem
+);
+router.delete('/:productId', 
+    validateParams(['productId']), 
+    deleteCartItem
+);
 
 export default router;

@@ -17,6 +17,19 @@
 }
 ```
 
+📦 **Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "cmeqjohel0000flatzc6jmd86",
+    "email": "user@mail.com"
+  },
+  "message": "User berhasil didaftarkan."
+}
+```
+
 ---
 
 ### 🔐 Login
@@ -28,18 +41,31 @@
 
 ```json
 {
-    "message": "Login berhasil.",
-    "user": {
-        "id": "cmeqjohel0000flatzc6jmd86",
-        "email": "admin@mail.com"
-    },
-    "token": "token..."
+  "email": "user@mail.com",
+  "password": "123456"
 }
 ```
 
 📦 **Response:**
 
-* Set-Cookie berisi token **JWT**
+```json
+{
+  "success": true,
+  "data": {
+    "user": {
+      "id": "cmeqjohel0000flatzc6jmd86",
+      "email": "user@mail.com",
+      "role": "user",
+      "name": "Iyan",
+      "avatarUrl": "https://avatar.iran.liara.run/public"
+    }
+  },
+  "message": "Login berhasil."
+}
+```
+
+⚠️ **Catatan:**
+Token otomatis disimpan di cookie.
 
 ---
 
@@ -51,6 +77,22 @@
 `GET /api/user/profile`
 🔒 Protected (User)
 
+📦 **Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "cmeqjohel0000flatzc6jmd86",
+    "name": "Iyan",
+    "email": "user@mail.com",
+    "avatarUrl": "https://avatar.iran.liara.run/public",
+    "role": "user"
+  },
+  "message": "User profile retrieved successfully"
+}
+```
+
 ---
 
 ## 📦 Products
@@ -61,29 +103,41 @@
 `GET /api/products`
 📖 Public
 
-**Response:**
+📦 **Response:**
 
 ```json
-[
-  {
-        "id": "cme892...",
-        "name": "T-Shirt Polos Katun",
-        "description": "Kaos nyaman bahan katun combed 30s, cocok untuk sehari-hari.",
-        "price": 75000,
-        "stock": 50,
-        "imageUrl": "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=2080",
-        "createdAt": "2025-08-25T03:15:38.419Z",
-        "updatedAt": "2025-08-25T03:15:38.419Z",
-        "userId": "cmeqjohel0000flatzc6jmd86",
-        "categoryId": "cme3...",
-        "category": {
-            "id": "cme3...",
-            "name": "Pakaian",
-            "createdAt": "2025-08-25T03:15:38.410Z",
-            "updatedAt": "2025-08-25T03:15:38.410Z"
+{
+  "success": true,
+  "data": [
+    {
+      "id": "cme892...",
+      "name": "T-Shirt Polos Katun",
+      "description": "Kaos nyaman bahan katun combed 30s, cocok untuk sehari-hari.",
+      "price": 75000,
+      "stock": 50,
+      "imageUrl": "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=2080",
+      "createdAt": "2025-08-25T03:15:38.419Z",
+      "updatedAt": "2025-08-25T03:15:38.419Z",
+      "userId": "cmeqjohel0000flatzc6jmd86",
+      "categoryId": "cme3...",
+      "category": {
+        "id": "cme3...",
+        "name": "Pakaian",
+        "createdAt": "2025-08-25T03:15:38.410Z",
+        "updatedAt": "2025-08-25T03:15:38.410Z"
+      },
+      "ProductImage": [
+        {
+          "id": "img123",
+          "imageUrl": "/images/products/product1.jpg",
+          "isMain": true,
+          "createdAt": "2025-08-25T03:15:38.410Z"
         }
+      ]
     }
-]
+  ],
+  "message": "Produk berhasil diambil."
+}
 ```
 
 ---
@@ -93,6 +147,7 @@
 **Endpoint:**
 `POST /api/products`
 🔒 Protected (User)
+✅ Validasi: `name`, `description`, `price`, `stock` wajib diisi
 
 **Request Body:**
 
@@ -102,13 +157,49 @@
   "description": "Comfortable cotton",
   "price": 50000,
   "stock": 10,
-  "imageUrl": "https://img.com/tshirt.jpg",
-  "categoryId": 1
+  "categoryId": "cat123"
 }
 ```
 
-📌 **Catatan:**
-Produk otomatis dikaitkan dengan pengguna yang sedang login (`userId` dari token otentikasi).
+---
+
+### ➕ Add Product with Multiple Images
+
+**Endpoint:**
+`POST /api/products/create-with-images`
+🔒 Protected (User)
+✅ Validasi: `name`, `description`, `price`, `stock` wajib diisi
+📁 Multipart/form-data with file(s) in 'images' field
+
+**Request Body:**
+- `name`: Product name
+- `description`: Product description
+- `price`: Product price
+- `stock`: Product stock
+- `categoryId`: Optional category ID
+- `images`: Array of image files (max 10)
+
+---
+
+### ➕ Add Images to Existing Product
+
+**Endpoint:**
+`POST /api/products/:productId/images`
+🔒 Protected (Product owner)
+✅ Validasi: `productId` wajib diisi
+📁 Multipart/form-data with file(s) in 'images' field
+
+**Request Body:**
+- `images`: Array of image files (max 10)
+
+---
+
+### 🔄 Set Main Product Image
+
+**Endpoint:**
+`PUT /api/products/:productId/images/:imageId/set-main`
+🔒 Protected (Product owner)
+✅ Validasi: `productId` dan `imageId` wajib diisi
 
 ---
 
@@ -116,7 +207,19 @@ Produk otomatis dikaitkan dengan pengguna yang sedang login (`userId` dari token
 
 **Endpoint:**
 `PUT /api/products/:id`
-🔒 Admin only
+🔒 Protected (Product owner)
+✅ Validasi: `name`, `description`, `price`, `stock` wajib diisi dan `:id` wajib diisi
+
+**Request Body:**
+
+```json
+{
+  "name": "Updated T-Shirt",
+  "description": "Comfortable cotton - updated",
+  "price": 55000,
+  "stock": 15
+}
+```
 
 ---
 
@@ -124,17 +227,70 @@ Produk otomatis dikaitkan dengan pengguna yang sedang login (`userId` dari token
 
 **Endpoint:**
 `DELETE /api/products/:id`
-🔒 Admin only
+🔒 Protected (Product owner)
+✅ Validasi: `:id` wajib diisi
 
 ---
 
-## 🏗️ Categories
+## 🏗️ Categories (Hierarchical)
 
-### 📔 List Categories
+### 📔 List Categories (Flat)
 
 **Endpoint:**
 `GET /api/categories`
 📖 Public
+
+---
+
+### 📔 List Categories (Hierarchical Tree)
+
+**Endpoint:**
+`GET /api/categories/hierarchy`
+📖 Public
+
+📦 **Response:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "cat123",
+      "name": "Clothing",
+      "createdAt": "2025-08-25T03:15:38.410Z",
+      "updatedAt": "2025-08-25T03:15:38.410Z", 
+      "parentId": null,
+      "children": [
+        {
+          "id": "subcat456",
+          "name": "T-Shirts",
+          "createdAt": "2025-08-25T03:15:38.410Z",
+          "updatedAt": "2025-08-25T03:15:38.410Z",
+          "parentId": "cat123",
+          "children": []
+        }
+      ]
+    }
+  ],
+  "message": "Kategori dengan hierarki berhasil diambil."
+}
+```
+
+---
+
+### 📔 List Root Categories
+
+**Endpoint:**
+`GET /api/categories/root`
+📖 Public
+
+---
+
+### 📔 Get Category by ID (with children)
+
+**Endpoint:**
+`GET /api/categories/:id`
+📖 Public
+✅ Validasi: `:id` wajib diisi
 
 ---
 
@@ -143,14 +299,46 @@ Produk otomatis dikaitkan dengan pengguna yang sedang login (`userId` dari token
 **Endpoint:**
 `POST /api/categories`
 🔒 Admin only
+✅ Validasi: `name` wajib diisi
 
 **Request Body:**
 
 ```json
 {
-  "name": "Clothing"
+  "name": "Clothing",
+  "parentId": "parentCatId"  // Optional - for hierarchical structure
 }
 ```
+
+---
+
+### 🔀 Update Category
+
+**Endpoint:**
+`PUT /api/categories/:id`
+🔒 Admin only
+✅ Validasi: `:id` dan `name` wajib diisi
+
+**Request Body:**
+
+```json
+{
+  "name": "Updated Clothing",
+  "parentId": "newParentCatId"  // Optional
+}
+```
+
+---
+
+### ❌ Delete Category
+
+**Endpoint:**
+`DELETE /api/categories/:id`
+🔒 Admin only
+✅ Validasi: `:id` wajib diisi
+
+⚠️ **Catatan:**
+Kategori dengan sub-kategori tidak dapat dihapus.
 
 ---
 
@@ -162,13 +350,36 @@ Produk otomatis dikaitkan dengan pengguna yang sedang login (`userId` dari token
 `GET /api/cart`
 🔒 Protected (User)
 
+📦 **Response:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "cart123",
+      "productId": "prod123",
+      "userId": "user123",
+      "quantity": 2,
+      "product": {
+        "id": "prod123",
+        "name": "T-Shirt",
+        "price": 50000,
+        // ... other product details
+      }
+    }
+  ],
+  "message": "Cart items retrieved successfully."
+}
+```
+
 ---
 
 ### ➕ Add to Cart
 
 **Endpoint:**
-`POST /api/cart`
-🔒 Protected
+`POST /api/cart/add`
+🔒 Protected (User)
+✅ Validasi: `productId` dan `quantity` wajib diisi
 
 **Request Body:**
 
@@ -181,11 +392,29 @@ Produk otomatis dikaitkan dengan pengguna yang sedang login (`userId` dari token
 
 ---
 
+### 🔀 Update Cart Item Quantity
+
+**Endpoint:**
+`PUT /api/cart/:productId`
+🔒 Protected (User)
+✅ Validasi: `:productId` wajib diisi dan `quantity` wajib diisi dalam body
+
+**Request Body:**
+
+```json
+{
+  "quantity": 5
+}
+```
+
+---
+
 ### ❌ Remove from Cart
 
 **Endpoint:**
-`DELETE /api/cart/remove/:productId`
-🔒 Protected
+`DELETE /api/cart/:productId`
+🔒 Protected (User)
+✅ Validasi: `:productId` wajib diisi
 
 ---
 
@@ -203,14 +432,23 @@ Produk otomatis dikaitkan dengan pengguna yang sedang login (`userId` dari token
 
 **Endpoint:**
 `GET /api/orders`
-🔒 Protected
+🔒 Protected (User)
+
+---
+
+### 📔 Get Order by ID
+
+**Endpoint:**
+`GET /api/orders/:id`
+🔒 Protected (User who owns the order)
+✅ Validasi: `:id` wajib diisi
 
 ---
 
 ### 📋 Admin: Get All Orders
 
 **Endpoint:**
-`GET /api/orders/admin/all`
+`GET /api/orders/admin`
 🔒 Admin only
 
 ---
@@ -219,6 +457,344 @@ Produk otomatis dikaitkan dengan pengguna yang sedang login (`userId` dari token
 
 **Endpoint:**
 `PUT /api/orders/:id/status`
+🔒 Admin only
+✅ Validasi: `:id` wajib diisi dan `status` wajib diisi dalam body
+
+**Request Body:**
+
+```json
+{
+  "status": "shipped"
+}
+```
+
+---
+
+### ❌ Admin: Delete Order
+
+**Endpoint:**
+`DELETE /api/orders/:id`
+🔒 Admin only
+✅ Validasi: `:id` wajib diisi
+
+---
+
+## 💳 Payment (Simulasi)
+
+### 💸 Simulate Payment
+
+**Endpoint:**
+`POST /api/payment/:orderId/simulate`
+🔒 Protected (User who owns the order)
+✅ Validasi: `:orderId` wajib diisi
+
+📝 **Catatan:**
+
+* Order harus dalam status: `pending`
+* `paymentStatus`: `pending`
+
+Jika berhasil:
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "order123",
+    "paymentStatus": "paid",
+    "paidAt": "<timestamp sekarang>"
+  },
+  "message": "Pembayaran berhasil disimulasikan"
+}
+```
+
+---
+
+## ⚠️ Middleware
+
+* `authRequired`: Memerlukan autentikasi JWT (token di cookie).
+* `isAdmin`: Hanya bisa diakses oleh user dengan role `'admin'`.
+* `isOwner('model')`: Memeriksa apakah user adalah pemilik dari resource tertentu.
+* `validateBody(['field1', 'field2'])`: Memvalidasi bahwa field-field tertentu ada di request body.
+* `validateParams(['param1', 'param2'])`: Memvalidasi bahwa parameter-parameter tertentu ada di URL.
+* `isAuthenticated`: Middleware untuk memeriksa apakah user terautentikasi, tidak mengembalikan error jika tidak terautentikasi.
+
+---
+
+## ✅ Response Format
+
+### Success Response Format:
+```json
+{
+  "success": true,
+  "data": { /* response data */ },
+  "message": "Operational message"
+}
+```
+
+### Error Response Format:
+```json
+{
+  "success": false,
+  "message": "Error message",
+  "data": null
+}
+```
+
+## ✅ Status Kode
+
+| Kode | Arti                                         |
+| ---- | -------------------------------------------- |
+| 200  | OK - Berhasil                                |
+| 201  | Created - Data berhasil dibuat               |
+| 400  | Bad Request - Permintaan tidak valid         |
+| 401  | Unauthorized - Belum login / token salah     |
+| 403  | Forbidden - Akses ditolak (bukan admin/user) |
+| 404  | Not Found - Data tidak ditemukan             |
+| 500  | Server Error - Kesalahan dari server         |
+
+---
+
+### ❌ Delete Product Image
+
+**Endpoint:**
+`DELETE /api/products/images/:imageId`
+🔒 Protected (User)
+
+---
+
+### 🔀 Update Product
+
+**Endpoint:**
+`PUT /api/products/:id`
+🔒 Protected (User who owns the product)
+
+---
+
+### ❌ Delete Product
+
+**Endpoint:**
+`DELETE /api/products/:id`
+🔒 Protected (User who owns the product)
+
+---
+
+## 🏗️ Categories (Hierarchical)
+
+### 📔 List Categories (Flat)
+
+**Endpoint:**
+`GET /api/categories`
+📖 Public
+
+---
+
+### 📔 List Categories (Hierarchical Tree)
+
+**Endpoint:**
+`GET /api/categories/hierarchy`
+📖 Public
+
+📦 **Response:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "cat123",
+      "name": "Clothing",
+      "createdAt": "2025-08-25T03:15:38.410Z",
+      "updatedAt": "2025-08-25T03:15:38.410Z", 
+      "parentId": null,
+      "children": [
+        {
+          "id": "subcat456",
+          "name": "T-Shirts",
+          "createdAt": "2025-08-25T03:15:38.410Z",
+          "updatedAt": "2025-08-25T03:15:38.410Z",
+          "parentId": "cat123",
+          "children": []
+        }
+      ]
+    }
+  ],
+  "message": "Kategori dengan hierarki berhasil diambil."
+}
+```
+
+---
+
+### 📔 List Root Categories
+
+**Endpoint:**
+`GET /api/categories/root`
+📖 Public
+
+---
+
+### 📔 Get Category by ID (with children)
+
+**Endpoint:**
+`GET /api/categories/:id`
+📖 Public
+
+---
+
+### ➕ Add Category
+
+**Endpoint:**
+`POST /api/categories`
+🔒 Admin only
+
+**Request Body:**
+
+```json
+{
+  "name": "Clothing",
+  "parentId": "parentCatId"  // Optional - for hierarchical structure
+}
+```
+
+---
+
+### 🔀 Update Category
+
+**Endpoint:**
+`PUT /api/categories/:id`
+🔒 Admin only
+
+**Request Body:**
+
+```json
+{
+  "name": "Updated Clothing",
+  "parentId": "newParentCatId"  // Optional
+}
+```
+
+---
+
+### ❌ Delete Category
+
+**Endpoint:**
+`DELETE /api/categories/:id`
+🔒 Admin only
+
+⚠️ **Catatan:**
+Kategori dengan sub-kategori tidak dapat dihapus.
+
+---
+
+## 🛒 Cart
+
+### 📔 Get My Cart
+
+**Endpoint:**
+`GET /api/cart`
+🔒 Protected (User)
+
+📦 **Response:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "cart123",
+      "productId": "prod123",
+      "userId": "user123",
+      "quantity": 2,
+      "product": {
+        "id": "prod123",
+        "name": "T-Shirt",
+        "price": 50000,
+        // ... other product details
+      }
+    }
+  ],
+  "message": "Cart items retrieved successfully."
+}
+```
+
+---
+
+### ➕ Add to Cart
+
+**Endpoint:**
+`POST /api/cart`
+🔒 Protected (User)
+
+**Request Body:**
+
+```json
+{
+  "productId": "cwea..",
+  "quantity": 2
+}
+```
+
+---
+
+### 🔀 Update Cart Item Quantity
+
+**Endpoint:**
+`PUT /api/cart/:productId`
+🔒 Protected (User)
+
+**Request Body:**
+
+```json
+{
+  "quantity": 5
+}
+```
+
+---
+
+### ❌ Remove from Cart
+
+**Endpoint:**
+`DELETE /api/cart/:productId`
+🔒 Protected (User)
+
+---
+
+## 🧾 Orders
+
+### 📦 Create Order from Cart
+
+**Endpoint:**
+`POST /api/orders`
+🔒 Protected (User)
+
+---
+
+### 📔 Get My Orders
+
+**Endpoint:**
+`GET /api/orders`
+🔒 Protected (User)
+
+---
+
+### 📔 Get Order by ID
+
+**Endpoint:**
+`GET /api/orders/:id`
+🔒 Protected (User who owns the order)
+
+---
+
+### 📋 Admin: Get All Orders
+
+**Endpoint:**
+`GET /api/orders`
+🔒 Admin only
+
+---
+
+### ⚙️ Admin: Update Order Status
+
+**Endpoint:**
+`PUT /api/orders/:id`
 🔒 Admin only
 
 **Request Body:**
@@ -234,7 +810,7 @@ Produk otomatis dikaitkan dengan pengguna yang sedang login (`userId` dari token
 ### ❌ Admin: Delete Order
 
 **Endpoint:**
-`DELETE /api/orders/admin/:id`
+`DELETE /api/orders/:id`
 🔒 Admin only
 
 ---
@@ -245,7 +821,7 @@ Produk otomatis dikaitkan dengan pengguna yang sedang login (`userId` dari token
 
 **Endpoint:**
 `POST /api/payment/:orderId/simulate`
-🔒 Protected (User)
+🔒 Protected (User who owns the order)
 
 📝 **Catatan:**
 
@@ -256,8 +832,13 @@ Jika berhasil:
 
 ```json
 {
-  "paymentStatus": "paid",
-  "paidAt": "<timestamp sekarang>"
+  "success": true,
+  "data": {
+    "id": "order123",
+    "paymentStatus": "paid",
+    "paidAt": "<timestamp sekarang>"
+  },
+  "message": "Pembayaran berhasil disimulasikan"
 }
 ```
 
@@ -269,6 +850,26 @@ Jika berhasil:
 * `adminOnly`: Hanya bisa diakses oleh user dengan role `'admin'`.
 
 ---
+
+## ✅ Response Format
+
+### Success Response Format:
+```json
+{
+  "success": true,
+  "data": { /* response data */ },
+  "message": "Operational message"
+}
+```
+
+### Error Response Format:
+```json
+{
+  "success": false,
+  "message": "Error message",
+  "data": null
+}
+```
 
 ## ✅ Status Kode
 

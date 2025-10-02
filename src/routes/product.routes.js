@@ -12,24 +12,68 @@ import {
     uploadMultipleImages
 } from '../controllers/product.controller.js';
 import { authRequired } from '../middlewares/auth.middleware.js';
+import { isAdmin } from '../middlewares/authorization.middleware.js';
+import { validateBody, validateParams } from '../middlewares/validation.middleware.js';
 
 const router = express.Router();
 
-// Route to get all products
+// Public routes - users can explore products
 router.get('/', getProducts);
-router.get('/:id', getProductById);
+router.get('/:id', validateParams(['id']), getProductById);
+
+// Admin routes - only admin can manage products
+router.post('/', 
+    authRequired, 
+    isAdmin,
+    validateBody(['name', 'description', 'price', 'stock']), 
+    createProduct
+);
 
 // Create product with image upload capability
-router.post('/', authRequired, createProduct);
-router.post('/create-with-images', authRequired, uploadMultipleImages, createProductWithImages);
+router.post('/create-with-images',
+    authRequired,
+    isAdmin,
+    uploadMultipleImages,
+    validateBody(['name', 'description', 'price', 'stock']),
+    createProductWithImages
+);
 
-// Update and delete products
-router.put('/:id', authRequired, updateProduct);
-router.delete('/:id', authRequired, deleteProduct);
+router.put('/:id', 
+    authRequired,
+    isAdmin,
+    validateParams(['id']),
+    validateBody(['name', 'description', 'price', 'stock']),
+    updateProduct
+);
 
-// Product image routes
-router.post('/:productId/images', authRequired, uploadMultipleImages, addImagesToProduct);
-router.put('/:productId/images/:imageId/set-main', authRequired, setMainProductImage);
-router.delete('/images/:imageId', authRequired, deleteProductImage);
+router.delete('/:id', 
+    authRequired,
+    isAdmin,
+    validateParams(['id']),
+    deleteProduct
+);
+
+// Admin routes - only admin can manage product images
+router.post('/:productId/images',
+    authRequired,
+    isAdmin,
+    validateParams(['productId']),
+    uploadMultipleImages,
+    addImagesToProduct
+);
+
+router.put('/:productId/images/:imageId/set-main',
+    authRequired,
+    isAdmin,
+    validateParams(['productId', 'imageId']),
+    setMainProductImage
+);
+
+router.delete('/images/:imageId',
+    authRequired,
+    isAdmin,
+    validateParams(['imageId']),
+    deleteProductImage
+);
 
 export default router;

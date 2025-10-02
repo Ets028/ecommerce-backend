@@ -1,25 +1,26 @@
 import { prisma } from '../config/prisma.js';
+import { AppError } from '../utils/errorHandler.js';
 
 export const isAdmin = async (req, res, next) => {
-    const userId = req.user.userId; // Ambil userId dari token yang sudah diverifikasi
+    const userId = req.user.userId; // Get userId from verified token
 
     try {
         const user = await prisma.user.findUnique({
             where: { id: userId },
-            select: { role: true } // Hanya ambil role
+            select: { role: true } // Only get role
         });
 
         if (!user) {
-            return res.status(404).json({ message: 'Pengguna tidak ditemukan.' });
+            return next(new AppError('User not found.', 404));
         }
 
         if (user.role !== 'admin') {
-            return res.status(403).json({ message: 'Akses ditolak. Hanya admin yang dapat mengakses endpoint ini.' });
+            return next(new AppError('Access denied. Only admin can access this endpoint.', 403));
         }
 
-        next(); // Lanjutkan ke middleware berikutnya atau route handler
+        next(); // Continue to next middleware or route handler
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Terjadi kesalahan pada server.' });
+        next(new AppError('Server error occurred.', 500));
     }
-}
+};

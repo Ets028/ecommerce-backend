@@ -6,57 +6,57 @@ export const register = async (req, res, next) => {
   try {
     const { name, email, password } = req.body;
 
-    // Validasi input
+    // Validate input
     if (!email || !password) {
-      return next(new AppError("Email dan password wajib diisi.", 400));
+      return next(new AppError("Email and password are required.", 400));
     }
 
-    // Cek apakah user sudah ada
+    // Check if user already exists
     const existingUser = await findUserByEmail(email);
     if (existingUser) {
-      return next(new AppError("Email sudah terdaftar.", 409));
+      return next(new AppError("Email is already registered.", 409));
     }
 
-    // Simpan ke database
+    // Save to database
     const user = await createUser({ name, email, password });
 
     res.status(201).json({
       success: true,
-      message: "User berhasil didaftarkan.",
+      message: "User registered successfully.",
       data: { id: user.id, email: user.email },
     });
   } catch (err) {
     console.error(err);
-    next(new AppError("Terjadi kesalahan pada server.", 500));
+    next(new AppError("Server error occurred.", 500));
   }
 };
 
 export const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
-    // Validasi input
+    // Validate input
     if (!email || !password) {
-      return next(new AppError("Email dan password wajib diisi.", 400));
+      return next(new AppError("Email and password are required.", 400));
     }
 
-    // Cek apakah user ada
+    // Check if user exists
     const user = await findUserByEmail(email);
     if (!user) {
-      return next(new AppError("Email atau password salah.", 401));
+      return next(new AppError("Invalid email or password.", 401));
     }
 
-    // Verifikasi password
+    // Verify password
     const isPasswordValid = await validatePassword(password, user.password);
     if (!isPasswordValid) {
-      return next(new AppError("Email atau password salah.", 401));
+      return next(new AppError("Invalid email or password.", 401));
     }
-    //buat token
+    //generate token
     const token = generateToken({ userId: user.id }, "7d");
     setAuthCookie(res, token);
 
     res.status(200).json({
       success: true,
-      message: "Login berhasil.",
+      message: "Login successful.",
       data: {
         user: {
           id: user.id,
@@ -69,6 +69,6 @@ export const login = async (req, res, next) => {
     });
   } catch (err) {
     console.error(err);
-    next(new AppError("Terjadi kesalahan pada server.", 500));
+    next(new AppError("Server error occurred.", 500));
   }
 };

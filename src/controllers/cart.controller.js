@@ -4,18 +4,18 @@ import {
     updateCartItemQuantity, 
     incrementCartItemQuantity,
     getUserCartItems,
-    updateCartItem,
-    deleteCartItem
+    updateCartItem as updateCartItemService,
+    deleteCartItem as deleteCartItemService
 } from '../services/cart.service.js';
 import { AppError } from '../utils/errorHandler.js';
 
-// Tambah item ke cart
+// Add item to cart
 export const addToCart = async (req, res, next) => {
     const userId = req.user.userId;
     const { productId, quantity } = req.body;
 
     if (!productId || !quantity) {
-        return next(new AppError('productId dan quantity wajib diisi.', 400));
+        return next(new AppError('productId and quantity are required.', 400));
     }
 
     try {
@@ -24,25 +24,25 @@ export const addToCart = async (req, res, next) => {
         let cartItem;
 
         if (existingItem) {
-            // Jika sudah ada, update quantity
+            // If item exists, update quantity
             cartItem = await incrementCartItemQuantity(userId, productId, quantity);
         } else {
-            // Jika belum ada, buat baru
+            // If item doesn't exist, create new
             cartItem = await createCartItem(userId, productId, quantity);
         }
 
         res.status(201).json({
             success: true,
             data: cartItem,
-            message: 'Item berhasil ditambahkan ke cart.'
+            message: 'Item added to cart successfully.'
         });
     } catch (err) {
         console.error(err);
-        next(new AppError('Gagal menambahkan ke cart', 500));
+        next(new AppError('Failed to add to cart', 500));
     }
 };
 
-// Lihat semua isi cart user
+// View all user cart items
 export const getUserCart = async (req, res, next) => {
     const userId = req.user.userId;
 
@@ -56,22 +56,22 @@ export const getUserCart = async (req, res, next) => {
         });
     } catch (err) {
         console.error(err);
-        next(new AppError('Gagal mengambil data cart', 500));
+        next(new AppError('Failed to retrieve cart data', 500));
     }
 };
 
-// Update quantity item di cart
+// Update item quantity in cart
 export const updateCartItem = async (req, res, next) => {
     const userId = req.user.userId;
     const { productId } = req.params;
     const { quantity } = req.body;
 
     if (quantity < 1) {
-        return next(new AppError('Minimal quantity adalah 1.', 400));
+        return next(new AppError('Minimum quantity is 1.', 400));
     }
 
     try {
-        const item = await updateCartItem(userId, productId, quantity);
+        const item = await updateCartItemService(userId, productId, quantity);
 
         res.status(200).json({
             success: true,
@@ -80,25 +80,25 @@ export const updateCartItem = async (req, res, next) => {
         });
     } catch (err) {
         console.error(err);
-        next(new AppError('Item tidak ditemukan di cart.', 404));
+        next(new AppError('Item not found in cart.', 404));
     }
 };
 
-// Hapus item dari cart
+// Remove item from cart
 export const deleteCartItem = async (req, res, next) => {
     const userId = req.user.userId;
     const { productId } = req.params;
 
     try {
-        await deleteCartItem(userId, productId);
+        await deleteCartItemService(userId, productId);
 
         res.status(200).json({
             success: true,
             data: null,
-            message: 'Item berhasil dihapus dari cart.'
+            message: 'Item removed from cart successfully.'
         });
     } catch (err) {
         console.error(err);
-        next(new AppError('Item tidak ditemukan di cart.', 404));
+        next(new AppError('Item not found in cart.', 404));
     }
 };
