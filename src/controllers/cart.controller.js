@@ -1,116 +1,104 @@
-import { prisma } from '../config/prisma.js';
+import { 
+    findCartItemByUserAndProduct, 
+    createCartItem, 
+    updateCartItemQuantity, 
+    incrementCartItemQuantity,
+    getUserCartItems,
+    updateCartItem,
+    deleteCartItem
+} from '../services/cart.service.js';
+import { AppError } from '../utils/errorHandler.js';
 
 // Tambah item ke cart
-export const addToCart = async (req, res) => {
+export const addToCart = async (req, res, next) => {
     const userId = req.user.userId;
     const { productId, quantity } = req.body;
 
     if (!productId || !quantity) {
-        return res.status(400).json({ message: 'productId dan quantity wajib diisi.' });
+        return next(new AppError('productId dan quantity wajib diisi.', 400));
     }
 
     try {
-        const existingItem = await prisma.cartItem.findUnique({
-            where: {
-                user_product_unique: { userId, productId }
-            }
-        });
+        const existingItem = await findCartItemByUserAndProduct(userId, productId);
 
         let cartItem;
 
         if (existingItem) {
             // Jika sudah ada, update quantity
-            cartItem = await prisma.cartItem.update({
-                where: {
-                    uuser_product_unique: { userId, productId }
-                },
-                data: {
-                    quantity: existingItem.quantity + quantity
-                }
-            });
+            cartItem = await incrementCartItemQuantity(userId, productId, quantity);
         } else {
             // Jika belum ada, buat baru
-            cartItem = await prisma.cartItem.create({
-                data: {
-                    userId,
-                    productId,
-                    quantity
-                }
-            });
+            cartItem = await createCartItem(userId, productId, quantity);
         }
 
-        res.status(201).json(cartItem);
+        res.status(201).json({
+            success: true,
+            data: cartItem,
+            message: 'Item berhasil ditambahkan ke cart.'
+        });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ message: 'Gagal menambahkan ke cart' });
+        next(new AppError('Gagal menambahkan ke cart', 500));
     }
 };
 
 // Lihat semua isi cart user
-export const getUserCart = async (req, res) => {
+export const getUserCart = async (req, res, next) => {
     const userId = req.user.userId;
 
     try {
-        const items = await prisma.cartItem.findMany({
-            where: { userId },
-            include: {
-                product: true
-            }
-        });
+        const items = await getUserCartItems(userId);
 
-        res.json(items);
+        res.status(200).json({
+            success: true,
+            data: items,
+            message: 'Cart items retrieved successfully.'
+        });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ message: 'Gagal mengambil data cart' });
+        next(new AppError('Gagal mengambil data cart', 500));
     }
 };
 
 // Update quantity item di cart
-export const updateCartItem = async (req, res) => {
+export const updateCartItem = async (req, res, next) => {
     const userId = req.user.userId;
     const { productId } = req.params;
     const { quantity } = req.body;
 
     if (quantity < 1) {
-        return res.status(400).json({ message: 'Minimal quantity adalah 1.' });
+        return next(new AppError('Minimal quantity adalah 1.', 400));
     }
 
     try {
-        const item = await prisma.cartItem.update({
-            where: {
-                user_product_unique: {
-                    userId,
-                    productId: Number(productId)
-                }
-            },
-            data: { quantity }
-        });
+        const item = await updateCartItem(userId, productId, quantity);
 
-        res.json(item);
+        res.status(200).json({
+            success: true,
+            data: item,
+            message: 'Cart item quantity updated successfully.'
+        });
     } catch (err) {
         console.error(err);
-        res.status(404).json({ message: 'Item tidak ditemukan di cart.' });
+        next(new AppError('Item tidak ditemukan di cart.', 404));
     }
 };
 
 // Hapus item dari cart
-export const deleteCartItem = async (req, res) => {
+export const deleteCartItem = async (req, res, next) => {
     const userId = req.user.userId;
     const { productId } = req.params;
 
     try {
-        await prisma.cartItem.delete({
-            where: {
-                user_product_unique: {
-                    userId,
-                    productId: Number(productId)
-                }
-            }
-        });
+        await deleteCartItem(userId, productId);
 
-        res.json({ message: 'Item berhasil dihapus dari cart.' });
+        res.status(200).json({
+            success: true,
+            data: null,
+            message: 'Item berhasil dihapus dari cart.'
+        });
     } catch (err) {
         console.error(err);
-        res.status(404).json({ message: 'Item tidak ditemukan di cart.' });
+        next(new AppError('Item tidak ditemukan di cart.', 404));
     }
 };

@@ -20,24 +20,31 @@ model User {
   cartItem cartItem[]
 
   Order Order[]
+  @@map("users")
 }
 
 model Category {
   id        String      @id @default(cuid())
-  name      String   @unique
+  name      String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
+  
+  // Parent-child relationship
+  parentId  String?  @db.VarChar(25) // Foreign key to parent category (optional for root categories)
+  parent    Category? @relation("CategoryTree", fields: [parentId], references: [id])
+  children  Category[] @relation("CategoryTree")
+  
   products Product[]
+  @@map("categories")
 }
 
 model Product {
-  id        String      @id @default(cuid())
+  id          String      @id @default(cuid())
   name        String
   description String?
   price       Float
   stock       Int      @default(0)
-  imageUrl    String?
+  imageUrl    String?  // main image URL - deprecated in favor of ProductImage
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   userId      String
@@ -47,7 +54,21 @@ model Product {
   category Category?  @relation(fields: [categoryId], references: [id])
   cartItem cartItem[]
 
-  OrderItem OrderItem[]
+  OrderItem    OrderItem[]
+  ProductImage ProductImage[]
+  @@map("products")
+}
+
+model ProductImage {
+  id        String   @id @default(cuid())
+  productId String
+  imageUrl  String
+  isMain    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  product Product @relation(fields: [productId], references: [id])
+  @@map("product_images")
 }
 
 model cartItem {
@@ -62,6 +83,7 @@ model cartItem {
   user    User    @relation(fields: [userId], references: [id])
 
   @@unique([userId, productId], name: "user_product_unique")
+  @@map("cart_items")
 }
 
 model Order {
@@ -76,6 +98,7 @@ model Order {
 
   user  User        @relation(fields: [userId], references: [id])
   items OrderItem[]
+  @@map("orders")
 }
 
 model OrderItem {
@@ -87,4 +110,5 @@ model OrderItem {
 
   order   Order   @relation(fields: [orderId], references: [id])
   product Product @relation(fields: [productId], references: [id])
+  @@map("order_items")
 }

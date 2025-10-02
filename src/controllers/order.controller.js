@@ -1,15 +1,23 @@
-import { prisma } from "../config/prisma.js";
+import { 
+    getCartItemsByUserId,
+    createOrder as createOrderService,
+    updateProductStock,
+    deleteCartItemsByUserId,
+    getUserOrders as getUserOrdersService,
+    getOrderById as getOrderByIdService,
+    updateOrderStatus as updateOrderStatusService,
+    getAllOrders as getAllOrdersService,
+    deleteOrder as deleteOrderService
+} from "../services/order.service.js";
+import { AppError } from '../utils/errorHandler.js';
 
-export const createOrder = async (req, res) => {
+export const createOrder = async (req, res, next) => {
     const userId = req.user.userId;
 
     try {
-        const cartItems = await prisma.cartItem.findMany({
-            where: { userId },
-            include: { product: true }
-        });
+        const cartItems = await getCartItemsByUserId(userId);
         if (cartItems.length === 0) {
-            return res.status(400).json({ message: "Cart kosong" });
+            return next(new AppError("Cart kosong", 400));
         }
 
         //hitung total
@@ -20,169 +28,128 @@ export const createOrder = async (req, res) => {
         // cek stok
         for (const item of cartItems) {
             if (item.quantity > item.product.stock) {
-                return res.status(400).json({ message: `Stok produk "$(item.product.name)" tidak cukup` });
+                return next(new AppError(`Stok produk "$(item.product.name)" tidak cukup`, 400));
             }
         }
         // buat order
-        const order = await prisma.order.create({
-            data: {
-                userId,
-                total,
-                items: {
-                    create: cartItems.map(item => ({
-                        productId: item.productId,
-                        quantity: item.quantity,
-                        price: item.product.price
-                    }))
-                }
-            },
-            include: {
-                items: true
-            }
-        });
+        const order = await createOrderService(userId, total, cartItems);
 
         //kurangi stok produk
         for (const item of cartItems) {
-            await prisma.product.update({
-                where: { id: item.productId },
-                data: { stock: item.product.stock - item.quantity }
-            });
+            await updateProductStock(item.productId, item.quantity);
         }
 
         //hapus cart
-        await prisma.cartItem.deleteMany({
-            where: { userId }
-        });
+        await deleteCartItemsByUserId(userId);
 
-        res.status(201).json(order);
+        res.status(201).json({
+            success: true,
+            data: order,
+            message: "Order berhasil dibuat."
+        });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: "Gagal Membuat Order" });
+        next(new AppError("Gagal Membuat Order", 500));
     }
 };
 
-export const getUserOrders = async (req, res) => {
+export const getUserOrders = async (req, res, next) => {
     const userId = req.user.userId;
 
     try {
-        const orders = await prisma.order.findMany({
-            where: { userId },
-            include: {
-                items: {
-                    include: { product: true }
-                }
-            },
-            orderBy: { createdAt: 'desc' }
-        });
+        const orders = await getUserOrdersService(userId);
 
-        res.status(200).json(orders);
+        res.status(200).json({
+            success: true,
+            data: orders,
+            message: "Daftar order berhasil diambil."
+        });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: "Gagal Mengambil Daftar Order" });
+        next(new AppError("Gagal Mengambil Daftar Order", 500));
     }
 };
 
-export const getOrderById = async (req, res) => {
+export const getOrderById = async (req, res, next) => {
     const { id } = req.params;
     const userId = req.user.userId;
 
     try {
-        const order = await prisma.order.findUnique({
-            where: { id },
-            include: {
-                items: {
-                    include: { product: true }
-                }
-            }
-        });
+        const order = await getOrderByIdService(id);
 
         if (!order || order.userId !== userId) {
-            return res.status(404).json({ message: "Order tidak ditemukan" });
+            return next(new AppError("Order tidak ditemukan", 404));
         }
 
-        res.status(200).json(order);
+        res.status(200).json({
+            success: true,
+            data: order,
+            message: "Order berhasil diambil."
+        });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: "Gagal Mengambil Order" });
+        next(new AppError("Gagal Mengambil Order", 500));
     }
 };
 
-export const updateOrderStatus = async (req, res) => {
-    const orderId = parseInt(req.params.id);
+export const updateOrderStatus = async (req, res, next) => {
+    const orderId = req.params.id;
     const { status } = req.body;
 
     const allowedStatuses = ["pending", "paid", "shipped", "completed", "cancelled"];
 
     if (!allowedStatuses.includes(status)) {
-        return res.status(400).json({ message: "Status tidak valid" });
+        return next(new AppError("Status tidak valid", 400));
     }
 
     try {
-        const updatedOrder = await prisma.order.update({
-            where: { id: orderId },
-            data: { status },
-        });
+        const updatedOrder = await updateOrderStatusService(orderId, status);
 
-        res.json({ message: "Status order berhasil diupdate", order: updatedOrder });
+        res.status(200).json({
+            success: true,
+            data: updatedOrder,
+            message: "Status order berhasil diupdate"
+        });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ message: "Gagal update status order" });
+        next(new AppError("Gagal update status order", 500));
     }
 };
 
-export const getAllOrders = async (req, res) => {
+export const getAllOrders = async (req, res, next) => {
     try {
-        const orders = await prisma.order.findMany({
-            orderBy: {
-                createdAt: 'desc'
-            },
-            include: {
-                user: {
-                    select: {
-                        id: true,
-                        email: true,
-                        name: true,
-                    },
-                },
-                items: {
-                    include: {
-                        product: {
-                            select: {
-                                name: true,
-                                price: true,
-                            },
-                        },
-                    },
-                },
-            },
-        });
+        const orders = await getAllOrdersService();
 
-        res.json(orders);
+        res.status(200).json({
+            success: true,
+            data: orders,
+            message: "Daftar order berhasil diambil."
+        });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ message: 'Gagal mengambil data order' });
+        next(new AppError('Gagal mengambil data order', 500));
     }
 };
 
-export const deleteOrder = async (req, res) => {
+export const deleteOrder = async (req, res, next) => {
     const { id } = req.params;
 
     try {
-        const order = await prisma.order.findUnique({
-            where: { id: Number(id) },
-        });
+        const order = await getOrderByIdService(id);
 
         if (!order) {
-            return res.status(404).json({ message: "Order tidak ditemukan" });
+            return next(new AppError("Order tidak ditemukan", 404));
         }
 
-        await prisma.order.delete({
-            where: { id: Number(id) },
-        });
+        await deleteOrderService(id);
 
-        res.json({ message: "Order berhasil dihapus" });
+        res.status(200).json({
+            success: true,
+            data: null,
+            message: "Order berhasil dihapus"
+        });
     } catch (err) {
         console.error(err);
-        res.status(500).json({ message: "Gagal menghapus order" });
+        next(new AppError("Gagal menghapus order", 500));
     }
 };

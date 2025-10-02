@@ -1,26 +1,28 @@
 // src/controllers/user.controller.js
-import { prisma } from '../config/prisma.js';
+import { findUserById } from '../services/user.service.js';
+import { AppError } from '../utils/errorHandler.js';
 
-export const getUserProfile = async (req, res) => {
+export const getUserProfile = async (req, res, next) => {
     try {
-        const user = await prisma.user.findUnique({
-            where: { id: req.user.userId },
-            select: {
-                id: true,
-                name: true,
-                email: true,
-                avatarUrl: true,
-                role: true,
-            }
-        });
+        const user = await findUserById(req.user.userId);
 
         if (!user) {
-            return res.status(404).json({ message: 'User tidak ditemukan.' });
+            return next(new AppError('User tidak ditemukan.', 404));
         }
 
-        res.status(200).json(user);
+        res.status(200).json({
+            success: true,
+            data: {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                avatarUrl: user.avatarUrl,
+                role: user.role,
+            },
+            message: 'User profile retrieved successfully'
+        });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Terjadi kesalahan pada server.' });
+        next(new AppError('Terjadi kesalahan pada server.', 500));
     }
 }

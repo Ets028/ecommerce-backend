@@ -1,91 +1,74 @@
-import { prisma } from "../config/prisma.js";
-import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
+import { findUserByEmail, createUser, validatePassword } from "../services/auth.service.js";
+import { generateToken, setAuthCookie } from "../utils/auth.util.js";
+import { AppError } from '../utils/errorHandler.js';
 
-export const register = async (req, res) => {
+export const register = async (req, res, next) => {
   try {
     const { name, email, password } = req.body;
 
     // Validasi input
     if (!email || !password) {
-      return res
-        .status(400)
-        .json({ message: "Email dan password wajib diisi." });
+      return next(new AppError("Email dan password wajib diisi.", 400));
     }
 
     // Cek apakah user sudah ada
-    const existingUser = await prisma.user.findUnique({ where: { email } });
+    const existingUser = await findUserByEmail(email);
     if (existingUser) {
-      return res.status(409).json({ message: "Email sudah terdaftar." });
+      return next(new AppError("Email sudah terdaftar.", 409));
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
     // Simpan ke database
-    const user = await prisma.user.create({
-      data: {
-        name,
-        email,
-        password: hashedPassword,
-        role: "user",
-      },
-    });
+    const user = await createUser({ name, email, password });
 
     res.status(201).json({
+      success: true,
       message: "User berhasil didaftarkan.",
-      user: { id: user.id, email: user.email },
+      data: { id: user.id, email: user.email },
     });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Terjadi kesalahan pada server." });
+    next(new AppError("Terjadi kesalahan pada server.", 500));
   }
 };
 
-export const login = async (req, res) => {
+export const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
     // Validasi input
     if (!email || !password) {
-      return res
-        .status(400)
-        .json({ message: "Email dan password wajib diisi." });
+      return next(new AppError("Email dan password wajib diisi.", 400));
     }
 
     // Cek apakah user ada
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await findUserByEmail(email);
     if (!user) {
-      return res.status(401).json({ message: "Email atau password salah." });
+      return next(new AppError("Email atau password salah.", 401));
     }
 
     // Verifikasi password
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    const isPasswordValid = await validatePassword(password, user.password);
     if (!isPasswordValid) {
-      return res.status(401).json({ message: "Email atau password salah." });
+      return next(new AppError("Email atau password salah.", 401));
     }
     //buat token
-    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, {
-      expiresIn: "7d",
-    });
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: true,
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 hari
-      sameSite: "lax",
-    });
+    const token = generateToken({ userId: user.id }, "7d");
+    setAuthCookie(res, token);
 
     res.status(200).json({
+      success: true,
       message: "Login berhasil.",
-      user: {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        name: user.name,
-        avatarUrl: user.avatarUrl,
+      data: {
+        user: {
+          id: user.id,
+          email: user.email,
+          role: user.role,
+          name: user.name,
+          avatarUrl: user.avatarUrl,
+        },
       },
     });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Terjadi kesalahan pada server." });
+    next(new AppError("Terjadi kesalahan pada server.", 500));
   }
 };
