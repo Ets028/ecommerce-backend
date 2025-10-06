@@ -10,7 +10,7 @@ import categoryRoutes from './routes/category.routes.js';
 import productRoutes from './routes/product.routes.js';
 import cartRoutes from './routes/cart.routes.js';
 import orderRoutes from './routes/order.routes.js';
-import paymentRoutes from './routes/payment.routes.js'
+import paymentRoutes from './routes/payment.routes.js';
 import { globalErrorHandler, notFoundHandler } from './utils/errorHandler.js';
 import logger from './config/logger.js';
 import { requestLogger, errorLogger } from './middlewares/logging.middleware.js';
@@ -40,9 +40,6 @@ app.use(cookieParser());
 // Error logging middleware
 app.use(errorLogger);
 
-// Serve static files (for images)
-
-
 app.get('/', (req, res) => {
     res.send('Hello, World! This is the API server.');
 });
@@ -52,8 +49,8 @@ app.use('/api/user', userRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/orders', orderRoutes);
-app.use('/api/categories', categoryRoutes)
-app.use('/api/payment', paymentRoutes)
+app.use('/api/categories', categoryRoutes);
+app.use('/api/payment', paymentRoutes);
 
 // Handle 404 for undefined routes
 app.use(notFoundHandler);

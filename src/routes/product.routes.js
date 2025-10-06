@@ -13,19 +13,26 @@ import {
 } from '../controllers/product.controller.js';
 import { authRequired } from '../middlewares/auth.middleware.js';
 import { isAdmin } from '../middlewares/authorization.middleware.js';
-import { validateBody, validateParams } from '../middlewares/validation.middleware.js';
+import { 
+    validateCreateProduct, 
+    validateUpdateProduct, 
+    validateProductId, 
+    validateProductParams, 
+    validateImageParams, 
+    validateImageId 
+} from '../middlewares/validation.middleware.js';
 
 const router = express.Router();
 
 // Public routes - users can explore products
 router.get('/', getProducts);
-router.get('/:id', validateParams(['id']), getProductById);
+router.get('/:id', validateProductId, getProductById);
 
 // Admin routes - only admin can manage products
 router.post('/', 
     authRequired, 
     isAdmin,
-    validateBody(['name', 'description', 'price', 'stock']), 
+    validateCreateProduct, 
     createProduct
 );
 
@@ -34,22 +41,22 @@ router.post('/create-with-images',
     authRequired,
     isAdmin,
     uploadMultipleImages,
-    validateBody(['name', 'description', 'price', 'stock']),
+    validateCreateProduct,
     createProductWithImages
 );
 
 router.put('/:id', 
     authRequired,
     isAdmin,
-    validateParams(['id']),
-    validateBody(['name', 'description', 'price', 'stock']),
+    validateProductId,
+    validateUpdateProduct,
     updateProduct
 );
 
 router.delete('/:id', 
     authRequired,
     isAdmin,
-    validateParams(['id']),
+    validateProductId,
     deleteProduct
 );
 
@@ -57,7 +64,7 @@ router.delete('/:id',
 router.post('/:productId/images',
     authRequired,
     isAdmin,
-    validateParams(['productId']),
+    validateProductParams,
     uploadMultipleImages,
     addImagesToProduct
 );
@@ -65,14 +72,14 @@ router.post('/:productId/images',
 router.put('/:productId/images/:imageId/set-main',
     authRequired,
     isAdmin,
-    validateParams(['productId', 'imageId']),
+    validateImageParams,
     setMainProductImage
 );
 
 router.delete('/images/:imageId',
     authRequired,
     isAdmin,
-    validateParams(['imageId']),
+    validateImageId,
     deleteProductImage
 );
 

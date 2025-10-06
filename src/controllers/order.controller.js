@@ -9,12 +9,19 @@ import {
     getAllOrders as getAllOrdersService,
     deleteOrder as deleteOrderService
 } from "../services/order.service.js";
+import { getUserProfile } from "../services/user.service.js";
 import { AppError } from '../utils/errorHandler.js';
 
 export const createOrder = async (req, res, next) => {
     const userId = req.user.userId;
 
     try {
+        // Check if user has completed their profile
+        const user = await getUserProfile(userId);
+        if (!user || !user.profileCompleted) {
+            return next(new AppError("Please complete your profile before placing an order", 400));
+        }
+
         const cartItems = await getCartItemsByUserId(userId);
         if (cartItems.length === 0) {
             return next(new AppError("Cart is empty", 400));

@@ -28,6 +28,7 @@ Back-end RESTful API untuk aplikasi e-commerce. Dibuat menggunakan **Node.js**, 
 - **Cookie-parser** – Menyimpan token di cookie
 - **dotenv** – Mengelola environment variables
 - **Winston** – Logging (info, warn, error, query)
+- **Zod** – Validation schema untuk input sanitization
 
 ---
 
@@ -111,6 +112,30 @@ Sistem logging telah diimplementasikan menggunakan Winston dengan fitur:
 - **Error Logging**: Semua error aplikasi dicatat dengan stack trace
 - **Info/Warning Logging**: Event penting dan peringatan sistem dicatat
 - **File Logs**: Log disimpan dalam folder `logs/` dengan pembagian error.log dan combined.log
+
+---
+
+## ✅ Validation
+
+Sistem validasi input telah diimplementasikan menggunakan Zod dengan fitur:
+
+- **Schema-based Validation**: Validasi berbasis skema untuk semua input API
+- **Type Safety**: Validasi tipe data langsung dari skema
+- **Custom Error Messages**: Pesan error yang informatif dan spesifik
+- **Automatic Sanitization**: Pembersihan dan sanitasi input otomatis
+- **Comprehensive Coverage**: Validasi untuk semua endpoint utama (produk, kategori, keranjang, order, auth)
+
+---
+
+## 👤 User Profile Management
+
+Fitur manajemen profil pengguna telah diimplementasikan dengan:
+
+- **Profile Completion Requirement**: Pengguna harus melengkapi profil sebelum bisa melakukan order
+- **Alamat Lengkap**: Pengguna bisa menyimpan informasi alamat lengkap (phone, address, city, province, postal code, country)
+- **Validasi ketat**: Validasi lengkap untuk semua field profil
+- **Status pelengkapan**: Sistem otomatis menandai apakah profil sudah lengkap atau belum
+- **API endpoint**: Endpoint untuk update dan retrieve profile
 
 ---
 

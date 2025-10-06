@@ -15,6 +15,15 @@ model User {
   avatarUrl String?  @default("https://avatar.iran.liara.run/public")
   role      String   @default("user")
   createdAt DateTime @default(now())
+  
+  // Profile Information
+  profileCompleted Boolean @default(false)  // Whether user has filled profile info
+  phone            String?
+  address          String?
+  city             String?
+  province         String?
+  postalCode       String?
+  country          String? @default("Indonesia")
 
   products Product[]  @relation("UserProducts")
   cartItem cartItem[]
@@ -43,6 +52,7 @@ model Product {
   name        String
   description String?
   price       Float
+  salePrice   Float?      // Optional sale price
   stock       Int      @default(0)
   imageUrl    String?  // main image URL - deprecated in favor of ProductImage
   createdAt   DateTime @default(now())

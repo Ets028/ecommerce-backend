@@ -20,15 +20,10 @@ export const uploadSingleImage = upload.single('image');
 export const uploadMultipleImages = upload.array('images', 10); // Allow up to 10 images
 
 export const createProduct = async (req, res, next) => {
-    // Only body data, not image files yet in this version
-    const { name, description, price, stock, categoryId } = req.body;
-
-    // Validate input
-    if (!name || !description || !price || !stock) {
-        return next(new AppError("All fields are required.", 400));
-    }
-
     try {
+        // Zod validation has already been performed by middleware
+        const { name, description, price, salePrice, stock, categoryId } = req.validatedData;
+
         // Check if category exists
         if (categoryId) {
             const category = await findCategoryById(categoryId);
@@ -51,6 +46,7 @@ export const createProduct = async (req, res, next) => {
             name,
             description,
             price,
+            salePrice,
             stock,
             categoryId,
             userId: req.user.userId
@@ -69,14 +65,10 @@ export const createProduct = async (req, res, next) => {
 
 // Create product with images
 export const createProductWithImages = async (req, res, next) => {
-    const { name, description, price, stock, categoryId } = req.body;
-
-    // Validate input
-    if (!name || !description || !price || !stock) {
-        return next(new AppError("All fields are required.", 400));
-    }
-
     try {
+        // Zod validation has already been performed by middleware
+        const { name, description, price, salePrice, stock, categoryId } = req.validatedData;
+
         // Check if category exists
         if (categoryId) {
             const category = await findCategoryById(categoryId);
@@ -98,6 +90,7 @@ export const createProductWithImages = async (req, res, next) => {
             name,
             description,
             price,
+            salePrice,
             stock,
             categoryId,
             userId: req.user.userId
@@ -153,19 +146,17 @@ export const getProductById = async (req, res, next) => {
 }
 
 export const updateProduct = async (req, res, next) => {
-    const { id } = req.params;
-    const { name, description, price, stock } = req.body;
     try {
-        // Validate input
-        if (!name || !description || !price || !stock) {
-            return next(new AppError("All fields are required.", 400));
-        }
+        // Zod validation has already been performed by middleware
+        const { id } = req.params;
+        const { name, description, price, salePrice, stock } = req.validatedData;
 
         // Update product
         const product = await updateProductService(id, {
             name,
             description,
             price,
+            salePrice,
             stock
         });
 

@@ -87,7 +87,14 @@ Token otomatis disimpan di cookie.
     "name": "Iyan",
     "email": "user@mail.com",
     "avatarUrl": "https://avatar.iran.liara.run/public",
-    "role": "user"
+    "role": "user",
+    "profileCompleted": false,
+    "phone": null,
+    "address": null,
+    "city": null,
+    "province": null,
+    "postalCode": null,
+    "country": "Indonesia"
   },
   "message": "User profile retrieved successfully"
 }
@@ -123,6 +130,49 @@ Token otomatis disimpan di cookie.
 
 ---
 
+### 📋 Update User Profile
+
+**Endpoint:**
+`PUT /api/user/profile`
+🔒 Protected (User)
+✅ Validasi input dengan Zod schema
+
+**Request Body:**
+```json
+{
+  "phone": "081234567890",
+  "address": "Jl. Merdeka No. 123",
+  "city": "Jakarta",
+  "province": "DKI Jakarta",
+  "postalCode": "12345",
+  "country": "Indonesia"    // Optional, defaults to "Indonesia"
+}
+```
+
+📦 **Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "id": "cmeqjohel0000flatzc6jmd86",
+    "name": "Iyan",
+    "email": "user@mail.com",
+    "avatarUrl": "https://avatar.iran.liara.run/public",
+    "role": "user",
+    "profileCompleted": true,    // true jika semua field wajib terisi
+    "phone": "081234567890",
+    "address": "Jl. Merdeka No. 123",
+    "city": "Jakarta",
+    "province": "DKI Jakarta",
+    "postalCode": "12345",
+    "country": "Indonesia"
+  },
+  "message": "User profile updated successfully"
+}
+```
+
+---
+
 ## 📦 Products
 
 ### 📔 List Products
@@ -142,6 +192,7 @@ Token otomatis disimpan di cookie.
       "name": "T-Shirt Polos Katun",
       "description": "Kaos nyaman bahan katun combed 30s, cocok untuk sehari-hari.",
       "price": 75000,
+      "salePrice": 65000,    // Optional - sale price if on promotion
       "stock": 50,
       "imageUrl": "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=2080",
       "createdAt": "2025-08-25T03:15:38.419Z",
@@ -175,7 +226,7 @@ Token otomatis disimpan di cookie.
 **Endpoint:**
 `POST /api/products`
 🔒 Protected (User)
-✅ Validasi: `name`, `description`, `price`, `stock` wajib diisi
+✅ Validasi input dengan Zod schema: Input di validasi dengan Zod schema (name, description, price, stock wajib diisi, format harga positif, stok integer non negatif, dll)
 
 **Request Body:**
 
@@ -184,6 +235,7 @@ Token otomatis disimpan di cookie.
   "name": "T-Shirt",
   "description": "Comfortable cotton",
   "price": 50000,
+  "salePrice": 45000,    // Optional - sale price if on promotion
   "stock": 10,
   "categoryId": "cat123"
 }
@@ -196,7 +248,7 @@ Token otomatis disimpan di cookie.
 **Endpoint:**
 `POST /api/products/create-with-images`
 🔒 Protected (User)
-✅ Validasi: `name`, `description`, `price`, `stock` wajib diisi
+✅ Validasi input dengan Zod schema: Input di validasi dengan Zod schema (name, description, price, stock wajib diisi, format harga positif, stok integer non negatif, dll)
 📁 Multipart/form-data with file(s) in 'images' field
 
 **Request Body:**
@@ -214,7 +266,7 @@ Token otomatis disimpan di cookie.
 **Endpoint:**
 `POST /api/products/:productId/images`
 🔒 Protected (Product owner)
-✅ Validasi: `productId` wajib diisi
+✅ Validasi input dengan Zod schema: `productId` wajib diisi
 📁 Multipart/form-data with file(s) in 'images' field
 
 **Request Body:**
@@ -227,7 +279,7 @@ Token otomatis disimpan di cookie.
 **Endpoint:**
 `PUT /api/products/:productId/images/:imageId/set-main`
 🔒 Protected (Product owner)
-✅ Validasi: `productId` dan `imageId` wajib diisi
+✅ Validasi input dengan Zod schema: `productId` dan `imageId` wajib diisi
 
 ---
 
@@ -236,7 +288,7 @@ Token otomatis disimpan di cookie.
 **Endpoint:**
 `PUT /api/products/:id`
 🔒 Protected (Product owner)
-✅ Validasi: `name`, `description`, `price`, `stock` wajib diisi dan `:id` wajib diisi
+✅ Validasi input dengan Zod schema: Input di validasi dengan Zod schema (name, description, price, stock wajib diisi, format harga positif, stok integer non negatif, dll) dan `:id` wajib diisi
 
 **Request Body:**
 
@@ -256,7 +308,7 @@ Token otomatis disimpan di cookie.
 **Endpoint:**
 `DELETE /api/products/:id`
 🔒 Protected (Product owner)
-✅ Validasi: `:id` wajib diisi
+✅ Validasi input dengan Zod schema: `:id` wajib diisi
 
 ---
 
@@ -318,7 +370,7 @@ Token otomatis disimpan di cookie.
 **Endpoint:**
 `GET /api/categories/:id`
 📖 Public
-✅ Validasi: `:id` wajib diisi
+✅ Validasi input dengan Zod schema: `:id` wajib diisi
 
 ---
 
@@ -327,7 +379,7 @@ Token otomatis disimpan di cookie.
 **Endpoint:**
 `POST /api/categories`
 🔒 Admin only
-✅ Validasi: `name` wajib diisi
+✅ Validasi input dengan Zod schema: `name` wajib diisi
 
 **Request Body:**
 
@@ -345,7 +397,7 @@ Token otomatis disimpan di cookie.
 **Endpoint:**
 `PUT /api/categories/:id`
 🔒 Admin only
-✅ Validasi: `:id` dan `name` wajib diisi
+✅ Validasi input dengan Zod schema: `:id` dan `name` wajib diisi
 
 **Request Body:**
 
@@ -363,7 +415,7 @@ Token otomatis disimpan di cookie.
 **Endpoint:**
 `DELETE /api/categories/:id`
 🔒 Admin only
-✅ Validasi: `:id` wajib diisi
+✅ Validasi input dengan Zod schema: `:id` wajib diisi
 
 ⚠️ **Catatan:**
 Kategori dengan sub-kategori tidak dapat dihapus.
@@ -407,7 +459,7 @@ Kategori dengan sub-kategori tidak dapat dihapus.
 **Endpoint:**
 `POST /api/cart/add`
 🔒 Protected (User)
-✅ Validasi: `productId` dan `quantity` wajib diisi
+✅ Validasi input dengan Zod schema: `productId` dan `quantity` wajib diisi
 
 **Request Body:**
 
@@ -425,7 +477,7 @@ Kategori dengan sub-kategori tidak dapat dihapus.
 **Endpoint:**
 `PUT /api/cart/:productId`
 🔒 Protected (User)
-✅ Validasi: `:productId` wajib diisi dan `quantity` wajib diisi dalam body
+✅ Validasi input dengan Zod schema: `:productId` wajib diisi dan `quantity` wajib diisi dalam body
 
 **Request Body:**
 
@@ -442,7 +494,7 @@ Kategori dengan sub-kategori tidak dapat dihapus.
 **Endpoint:**
 `DELETE /api/cart/:productId`
 🔒 Protected (User)
-✅ Validasi: `:productId` wajib diisi
+✅ Validasi input dengan Zod schema: `:productId` wajib diisi
 
 ---
 
@@ -451,6 +503,7 @@ Kategori dengan sub-kategori tidak dapat dihapus.
 ### 📦 Create Order from Cart
 
 **Endpoint:**
+⚠️ **Catatan:** User harus melengkapi profil (profileCompleted: true) sebelum bisa membuat order
 `POST /api/orders`
 🔒 Protected (User)
 
@@ -469,7 +522,7 @@ Kategori dengan sub-kategori tidak dapat dihapus.
 **Endpoint:**
 `GET /api/orders/:id`
 🔒 Protected (User who owns the order)
-✅ Validasi: `:id` wajib diisi
+✅ Validasi input dengan Zod schema: `:id` wajib diisi
 
 ---
 
@@ -486,7 +539,7 @@ Kategori dengan sub-kategori tidak dapat dihapus.
 **Endpoint:**
 `PUT /api/orders/:id/status`
 🔒 Admin only
-✅ Validasi: `:id` wajib diisi dan `status` wajib diisi dalam body
+✅ Validasi input dengan Zod schema: `:id` wajib diisi dan `status` wajib diisi dalam body
 
 **Request Body:**
 
@@ -503,7 +556,7 @@ Kategori dengan sub-kategori tidak dapat dihapus.
 **Endpoint:**
 `DELETE /api/orders/:id`
 🔒 Admin only
-✅ Validasi: `:id` wajib diisi
+✅ Validasi input dengan Zod schema: `:id` wajib diisi
 
 ---
 
@@ -514,7 +567,7 @@ Kategori dengan sub-kategori tidak dapat dihapus.
 **Endpoint:**
 `POST /api/payment/:orderId/simulate`
 🔒 Protected (User who owns the order)
-✅ Validasi: `:orderId` wajib diisi
+✅ Validasi input dengan Zod schema: `:orderId` wajib diisi
 
 📝 **Catatan:**
 

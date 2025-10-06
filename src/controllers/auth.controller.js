@@ -4,12 +4,8 @@ import { AppError } from '../utils/errorHandler.js';
 
 export const register = async (req, res, next) => {
   try {
-    const { name, email, password } = req.body;
-
-    // Validate input
-    if (!email || !password) {
-      return next(new AppError("Email and password are required.", 400));
-    }
+    // Zod validation has already been performed by middleware
+    const { name, email, password } = req.validatedData;
 
     // Check if user already exists
     const existingUser = await findUserByEmail(email);
@@ -33,11 +29,8 @@ export const register = async (req, res, next) => {
 
 export const login = async (req, res, next) => {
   try {
-    const { email, password } = req.body;
-    // Validate input
-    if (!email || !password) {
-      return next(new AppError("Email and password are required.", 400));
-    }
+    // Zod validation has already been performed by middleware
+    const { email, password } = req.validatedData;
 
     // Check if user exists
     const user = await findUserByEmail(email);

@@ -10,7 +10,7 @@ import {
 } from "../controllers/category.controller.js";
 import { authRequired } from "../middlewares/auth.middleware.js";
 import { isAdmin } from "../middlewares/authorization.middleware.js";
-import { validateBody, validateParams } from '../middlewares/validation.middleware.js';
+import { validateCreateCategory, validateUpdateCategory, validateCategoryId } from '../middlewares/validation.middleware.js';
 
 const router = express.Router();
 
@@ -18,28 +18,28 @@ const router = express.Router();
 router.get("/", getAllCategories);
 router.get("/hierarchy", getAllCategoriesWithHierarchy);
 router.get("/root", getRootCategories);
-router.get("/:id", validateParams(['id']), getCategoryById);
+router.get("/:id", validateCategoryId, getCategoryById);
 
 // Admin routes
 router.post("/", 
     authRequired, 
     isAdmin, 
-    validateBody(['name']), 
+    validateCreateCategory, 
     createCategory
 );
 
 router.put("/:id", 
     authRequired, 
     isAdmin, 
-    validateParams(['id']), 
-    validateBody(['name']), 
+    validateCategoryId, 
+    validateUpdateCategory, 
     updateCategory
 );
 
 router.delete("/:id", 
     authRequired, 
     isAdmin, 
-    validateParams(['id']), 
+    validateCategoryId, 
     deleteCategory
 );
 

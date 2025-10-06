@@ -1,101 +1,123 @@
-import { AppError } from '../utils/errorHandler.js';
-import { validateRequiredFields } from '../utils/validation.util.js';
+import { 
+  createUserSchema,
+  updateUserSchema,
+  updateUserProfileSchema,
+  loginUserSchema,
+  updateUserAvatarSchema,
+  createProductSchema,
+  updateProductSchema,
+  productIdSchema,
+  productParamsSchema,
+  imageParamsSchema,
+  imageIdSchema,
+  createCategorySchema,
+  updateCategorySchema,
+  categoryIdSchema,
+  addToCartSchema,
+  updateCartSchema,
+  cartParamsSchema,
+  createOrderSchema,
+  updateOrderStatusSchema,
+  orderIdSchema,
+  validateWithSchema 
+} from '../utils/validation.util.js';
 
-// Middleware to validate required fields in request body
-export const validateBody = (requiredFields) => {
-    return (req, res, next) => {
-        const missingFields = validateRequiredFields(req.body, requiredFields);
-        
-        if (missingFields.length > 0) {
-            return next(new AppError(`Required fields "${missingFields.join(', ')}" cannot be empty.`, 400));
-        }
-        
-        next();
-    };
-};
-
-// Middleware to validate request parameters
-export const validateParams = (requiredParams) => {
-    return (req, res, next) => {
-        const missingParams = [];
-        
-        for (const param of requiredParams) {
-            if (!req.params[param]) {
-                missingParams.push(param);
-            }
-        }
-        
-        if (missingParams.length > 0) {
-            return next(new AppError(`Required parameters "${missingParams.join(', ')}" cannot be empty.`, 400));
-        }
-        
-        next();
-    };
-};
-
-// Middleware to validate query parameters
-export const validateQuery = (requiredQuery) => {
-    return (req, res, next) => {
-        const missingQuery = [];
-        
-        for (const query of requiredQuery) {
-            if (!req.query[query]) {
-                missingQuery.push(query);
-            }
-        }
-        
-        if (missingQuery.length > 0) {
-            return next(new AppError(`Required query parameters "${missingQuery.join(', ')}" cannot be empty.`, 400));
-        }
-        
-        next();
-    };
-};
-
-// Middleware to validate if the product exists before processing
-export const validateProductExists = async (req, res, next) => {
-    const { id } = req.params;
-    
-    if (!id) {
-        return next(new AppError('Product ID not found.', 400));
-    }
-    
+// Generic validation middleware
+export const validate = (schema) => {
+  return (req, res, next) => {
     try {
-        const { getProductById } = await import('../services/product.service.js');
-        const product = await getProductById(id);
-        
-        if (!product) {
-            return next(new AppError('Product not found.', 404));
+      // Validate body, params, and query separately
+      const validatedData = validateWithSchema(schema, {
+        ...req.body,
+        ...req.params,
+        ...req.query,
+      });
+
+      // If validation passes, add the validated data to req object
+      req.validatedData = validatedData;
+      
+      // Also update the original request objects with validated data
+      // This ensures type safety and removes additional properties
+      req.body = Object.keys(req.body).reduce((acc, key) => {
+        if (validatedData.hasOwnProperty(key)) {
+          acc[key] = validatedData[key];
         }
-        
-        req.product = product;
-        next();
+        return acc;
+      }, {});
+      
+      req.params = Object.keys(req.params).reduce((acc, key) => {
+        if (validatedData.hasOwnProperty(key)) {
+          acc[key] = validatedData[key];
+        }
+        return acc;
+      }, {});
+      
+      req.query = Object.keys(req.query).reduce((acc, key) => {
+        if (validatedData.hasOwnProperty(key)) {
+          acc[key] = validatedData[key];
+        }
+        return acc;
+      }, {});
+
+      next();
     } catch (error) {
-        console.error(error);
-        next(new AppError('Server error occurred during product validation.', 500));
+      res.status(400).json({
+        success: false,
+        message: error.message,
+        data: null
+      });
     }
+  };
 };
 
-// Middleware to validate if the category exists before processing
-export const validateCategoryExists = async (req, res, next) => {
-    const { id } = req.params;
-    
-    if (!id) {
-        return next(new AppError('Category ID not found.', 400));
+// Specific validation middleware for different operations
+export const validateCreateUser = validate(createUserSchema);
+export const validateUpdateUser = validate(updateUserSchema);
+export const validateUpdateUserProfile = validate(updateUserProfileSchema);
+export const validateLoginUser = validate(loginUserSchema);
+export const validateCreateProduct = validate(createProductSchema);
+export const validateUpdateProduct = validate(updateProductSchema);
+export const validateProductId = validate(productIdSchema);
+export const validateProductParams = validate(productParamsSchema);
+export const validateImageParams = validate(imageParamsSchema);
+export const validateImageId = validate(imageIdSchema);
+export const validateCreateCategory = validate(createCategorySchema);
+export const validateUpdateCategory = validate(updateCategorySchema);
+export const validateCategoryId = validate(categoryIdSchema);
+export const validateAddToCart = validate(addToCartSchema);
+export const validateUpdateCart = validate(updateCartSchema);
+export const validateCartParams = validate(cartParamsSchema);
+export const validateCreateOrder = validate(createOrderSchema);
+export const validateUpdateOrderStatus = validate(updateOrderStatusSchema);
+export const validateOrderId = validate(orderIdSchema);
+
+// Backward compatibility functions for old validation approach
+export const validateBody = (fields) => {
+  return (req, res, next) => {
+    for (const field of fields) {
+      if (!req.body[field]) {
+        return res.status(400).json({
+          success: false,
+          message: `${field} is required.`,
+          data: null
+        });
+      }
     }
-    
-    try {
-        const { findCategoryById } = await import('../services/category.service.js');
-        const category = await findCategoryById(id);
-        
-        if (!category) {
-            return next(new AppError('Category not found.', 404));
-        }
-        
-        req.category = category;
-        next();
-    } catch (error) {
-        console.error(error);
-        next(new AppError('Server error occurred during category validation.', 500));
+    next();
+  };
+};
+
+export const validateParams = (params) => {
+  return (req, res, next) => {
+    for (const param of params) {
+      if (!req.params[param]) {
+        return res.status(400).json({
+          success: false,
+          message: `${param} is required in URL parameters.`,
+          data: null
+        });
+      }
     }
+    next();
+  };
 };

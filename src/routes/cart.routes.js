@@ -7,7 +7,11 @@ import {
 } from '../controllers/cart.controller.js';
 import { authRequired } from '../middlewares/auth.middleware.js';
 import { isUser } from '../middlewares/authorization.middleware.js';
-import { validateBody, validateParams } from '../middlewares/validation.middleware.js';
+import { 
+    validateAddToCart, 
+    validateCartParams, 
+    validateUpdateCart 
+} from '../middlewares/validation.middleware.js';
 
 const router = express.Router();
 
@@ -15,16 +19,16 @@ router.use(authRequired, isUser);
 
 router.get('/', getUserCart);
 router.post('/add', 
-    validateBody(['productId', 'quantity']), 
+    validateAddToCart, 
     addToCart
 );
 router.put('/:productId', 
-    validateParams(['productId']), 
-    validateBody(['quantity']), 
+    validateCartParams, 
+    validateUpdateCart, 
     updateCartItem
 );
 router.delete('/:productId', 
-    validateParams(['productId']), 
+    validateCartParams, 
     deleteCartItem
 );
 

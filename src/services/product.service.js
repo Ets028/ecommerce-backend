@@ -31,7 +31,7 @@ export const findCategoryById = async (categoryId) => {
 };
 
 export const createProduct = async (productData, imageUrls = []) => {
-  const { name, description, price, stock, categoryId, userId } = productData;
+  const { name, description, price, salePrice, stock, categoryId, userId } = productData;
   
   try {
     const result = await prisma.$transaction(async (tx) => {
@@ -41,6 +41,7 @@ export const createProduct = async (productData, imageUrls = []) => {
           name,
           description,
           price: parseFloat(price),
+          salePrice: salePrice ? parseFloat(salePrice) : null,
           stock: parseInt(stock, 10),
           userId,
           categoryId: categoryId || null,
@@ -158,7 +159,7 @@ export const getProductById = async (id) => {
 };
 
 export const updateProduct = async (id, productData) => {
-  const { name, description, price, stock } = productData;
+  const { name, description, price, salePrice, stock } = productData;
   
   try {
     const result = await prisma.product.update({
@@ -167,6 +168,7 @@ export const updateProduct = async (id, productData) => {
         name,
         description,
         price: parseFloat(price),
+        salePrice: salePrice !== undefined ? parseFloat(salePrice) : undefined,
         stock: parseInt(stock, 10),
       },
       include: {
