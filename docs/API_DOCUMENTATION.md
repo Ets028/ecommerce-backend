@@ -95,6 +95,34 @@ Token otomatis disimpan di cookie.
 
 ---
 
+### 🖼️ Update User Avatar
+
+**Endpoint:**
+`PUT /api/user/avatar`
+🔒 Protected (User)
+📁 Multipart/form-data with file in 'avatar' field
+
+**Request Body:**
+- `avatar`: Image file (jpg, jpeg, png, gif)
+
+📦 **Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "cmeqjohel0000flatzc6jmd86",
+    "name": "Iyan",
+    "email": "user@mail.com",
+    "avatarUrl": "https://res.cloudinary.com/your-cloud-name/image/upload/...",
+    "role": "user"
+  },
+  "message": "User avatar updated successfully"
+}
+```
+
+---
+
 ## 📦 Products
 
 ### 📔 List Products
@@ -129,7 +157,7 @@ Token otomatis disimpan di cookie.
       "ProductImage": [
         {
           "id": "img123",
-          "imageUrl": "/images/products/product1.jpg",
+          "imageUrl": https://res.cloudinary.com/your-cloud-name/image/upload/v123456/product1.jpg",
           "isMain": true,
           "createdAt": "2025-08-25T03:15:38.410Z"
         }

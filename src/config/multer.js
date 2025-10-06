@@ -1,21 +1,15 @@
 import multer from 'multer';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import { v2 as cloudinary } from './cloudinary.js';
+import { CloudinaryStorage } from 'multer-storage-cloudinary';
 
-// Get the current directory name (since __dirname is not available in ES modules)
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Configure storage for multer
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, path.join(__dirname, '../public/images/products')); // Store in public/images/products folder
+// Configure Cloudinary storage for multer
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'ecommerce-products', // Folder in Cloudinary to store images
+    allowed_formats: ['jpg', 'jpeg', 'png', 'gif'],
+    transformation: [{ width: 800, height: 600, crop: 'limit' }] // Optional: resize images
   },
-  filename: function (req, file, cb) {
-    // Create a unique filename with timestamp
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
-  }
 });
 
 // File filter to ensure only image files are uploaded
@@ -27,7 +21,7 @@ const fileFilter = (req, file, cb) => {
   cb(null, true);
 };
 
-// Configure multer with storage and limits
+// Configure multer with Cloudinary storage and limits
 const upload = multer({ 
   storage: storage,
   limits: {

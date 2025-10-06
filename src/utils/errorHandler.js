@@ -1,3 +1,5 @@
+import logger from '../config/logger.js';
+
 // AppError class for operational errors
 export class AppError extends Error {
   constructor(message, statusCode) {
@@ -16,10 +18,19 @@ export const globalErrorHandler = (err, req, res, next) => {
   err.statusCode = err.statusCode || 500;
   err.status = err.status || 'error';
 
-  // Log the error in development mode
-  if (process.env.NODE_ENV === 'development') {
-    console.error('Error Stack:', err.stack);
-  }
+  // Log the error using Winston
+  logger.error(`Global error handler: ${err.message}`, {
+    statusCode: err.statusCode,
+    status: err.status,
+    message: err.message,
+    stack: err.stack,
+    url: req.originalUrl,
+    method: req.method,
+    ip: req.ip,
+    userAgent: req.get('User-Agent'),
+    userId: req.user ? req.user.userId : 'unauthenticated',
+    timestamp: new Date().toISOString()
+  });
 
   // Send error response
   res.status(err.statusCode).json({
@@ -33,5 +44,14 @@ export const globalErrorHandler = (err, req, res, next) => {
 // Not Found Middleware
 export const notFoundHandler = (req, res, next) => {
   const error = new AppError(`Route ${req.originalUrl} not found`, 404);
+  
+  // Log 404 errors
+  logger.warn(`Route not found: ${req.originalUrl}`, {
+    url: req.originalUrl,
+    method: req.method,
+    ip: req.ip,
+    timestamp: new Date().toISOString()
+  });
+  
   next(error);
 };

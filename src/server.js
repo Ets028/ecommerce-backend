@@ -12,6 +12,8 @@ import cartRoutes from './routes/cart.routes.js';
 import orderRoutes from './routes/order.routes.js';
 import paymentRoutes from './routes/payment.routes.js'
 import { globalErrorHandler, notFoundHandler } from './utils/errorHandler.js';
+import logger from './config/logger.js';
+import { requestLogger, errorLogger } from './middlewares/logging.middleware.js';
 
 dotenv.config();
 
@@ -22,6 +24,9 @@ const PORT = process.env.PORT || 5000;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Logging middleware - should be first
+app.use(requestLogger);
+
 app.use(cors({
     origin: 'http://localhost:3000',
     credentials: true
@@ -29,8 +34,14 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 
+// Static file serving is no longer needed for product images as they are stored on Cloudinary
+// app.use('/images', express.static(path.join(__dirname, 'public/images')));
+
+// Error logging middleware
+app.use(errorLogger);
+
 // Serve static files (for images)
-app.use('/images', express.static(path.join(__dirname, 'public/images')));
+
 
 app.get('/', (req, res) => {
     res.send('Hello, World! This is the API server.');
@@ -51,5 +62,9 @@ app.use(notFoundHandler);
 app.use(globalErrorHandler);
 
 app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
+    logger.info(`Server is running on http://localhost:${PORT}`, {
+        port: PORT,
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'development'
+    });
 });

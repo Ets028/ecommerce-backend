@@ -7,7 +7,7 @@ Back-end RESTful API untuk aplikasi e-commerce. Dibuat menggunakan **Node.js**, 
 - 🔐 Autentikasi menggunakan JWT (Token di cookie)
 - 👤 Manajemen user & admin (role-based access)
 - 📦 CRUD produk & **hierarchical kategori** (parent-child relationships)
-- 🖼️ **Multiple images per produk** dengan upload lokal
+- 🖼️ **Multiple images per produk** dengan upload ke Cloudinary
 - 🛒 Keranjang belanja
 - 🧾 Checkout & pemesanan
 - 💳 Simulasi payment gateway
@@ -24,9 +24,10 @@ Back-end RESTful API untuk aplikasi e-commerce. Dibuat menggunakan **Node.js**, 
 - **Prisma ORM** – Query builder modern
 - **PostgreSQL** – Relational database
 - **JWT** – Autentikasi token
-- **Multer** – Upload file/images
+- **Multer + Cloudinary** – Upload & hosting gambar produk
 - **Cookie-parser** – Menyimpan token di cookie
 - **dotenv** – Mengelola environment variables
+- **Winston** – Logging (info, warn, error, query)
 
 ---
 
@@ -78,6 +79,11 @@ JWT_SECRET="your-super-secret-jwt-key-change-in-production"
 JWT_EXPIRES_IN="7d"
 CORS_ORIGIN="http://localhost:3000"
 BCRYPT_SALT_ROUNDS=10
+
+# Cloudinary Configuration (for image uploads)
+CLOUDINARY_CLOUD_NAME="your_cloud_name"
+CLOUDINARY_API_KEY="your_api_key"
+CLOUDINARY_API_SECRET="your_api_secret"
 ```
 
 4. **Setup database dan Prisma:**
@@ -93,6 +99,18 @@ npm run dev
 ```
 
 Server berjalan di `http://localhost:5000`
+
+---
+
+## 📝 Logging
+
+Sistem logging telah diimplementasikan menggunakan Winston dengan fitur:
+
+- **HTTP Request/Response Logging**: Semua permintaan dan respons API dicatat
+- **Database Query Logging**: Semua query database dicatat termasuk durasi eksekusi
+- **Error Logging**: Semua error aplikasi dicatat dengan stack trace
+- **Info/Warning Logging**: Event penting dan peringatan sistem dicatat
+- **File Logs**: Log disimpan dalam folder `logs/` dengan pembagian error.log dan combined.log
 
 ---
 

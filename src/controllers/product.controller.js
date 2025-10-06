@@ -41,9 +41,9 @@ export const createProduct = async (req, res, next) => {
         // Prepare image URLs if images were uploaded
         let imageUrls = [];
         if (req.files) {
-            imageUrls = req.files.map(file => `/images/products/${file.filename}`);
+            imageUrls = req.files.map(file => file.path); // Cloudinary returns the URL in file.path
         } else if (req.file) {
-            imageUrls = [`/images/products/${req.file.filename}`];
+            imageUrls = [req.file.path]; // Cloudinary returns the URL in file.path
         }
 
         // Create new product
@@ -89,8 +89,8 @@ export const createProductWithImages = async (req, res, next) => {
         // Prepare image URLs from uploaded files
         let imageUrls = [];
         if (req.files && req.files.length > 0) {
-            // Convert file paths to full URLs
-            imageUrls = req.files.map(file => `${req.protocol}://${req.get('host')}/images/products/${file.filename}`);
+            // Cloudinary returns the URL in file.path
+            imageUrls = req.files.map(file => file.path);
         }
 
         // Create new product with images
@@ -206,8 +206,8 @@ export const addImagesToProduct = async (req, res, next) => {
         // Prepare image URLs from uploaded files
         let imageUrls = [];
         if (req.files && req.files.length > 0) {
-            // Convert file paths to full URLs
-            imageUrls = req.files.map(file => `${req.protocol}://${req.get('host')}/images/products/${file.filename}`);
+            // Cloudinary returns the URL in file.path
+            imageUrls = req.files.map(file => file.path);
         } else {
             return next(new AppError("No images uploaded.", 400));
         }
