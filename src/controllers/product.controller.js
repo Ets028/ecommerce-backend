@@ -7,7 +7,8 @@ import {
     deleteProduct as deleteProductService,
     addProductImages,
     setMainImage,
-    deleteProductImage as deleteProductImageService
+    deleteProductImage as deleteProductImageService,
+    getProductsByCategory as getProductsByCategoryService
 } from "../services/product.service.js";
 import { AppError } from "../utils/errorHandler.js";
 import upload from "../config/multer.js";
@@ -109,12 +110,50 @@ export const createProductWithImages = async (req, res, next) => {
 
 export const getProducts = async (req, res, next) => {
     try {
-        // Get all products
-        const products = await getAllProductsService();
+        // Extract query parameters for search, filter, and pagination
+        const {
+            page = '1',
+            limit = '10',
+            search = '',
+            category = '',
+            minPrice = '0',
+            maxPrice = '',
+            sortBy = 'createdAt',
+            sortOrder = 'desc',
+            saleOnly = 'false'
+        } = req.query;
+
+        // Validate and sanitize input
+        const pageNum = Math.max(1, parseInt(page) || 1);
+        const limitNum = Math.min(100, Math.max(1, parseInt(limit) || 10)); // Max 100 items per page
+        const minPriceNum = Math.max(0, parseFloat(minPrice) || 0);
+        let maxPriceNum = Infinity;
+        if (maxPrice && maxPrice !== 'Infinity' && maxPrice !== 'infinity') {
+            maxPriceNum = parseFloat(maxPrice) || Infinity;
+        }
+        
+        const validSortFields = ['name', 'price', 'createdAt', 'updatedAt', 'stock'];
+        const validSortOrder = ['asc', 'desc'];
+        const actualSortBy = validSortFields.includes(sortBy) ? sortBy : 'createdAt';
+        const actualSortOrder = validSortOrder.includes(sortOrder) ? sortOrder : 'desc';
+        const actualSaleOnly = saleOnly === 'true';
+
+        // Get filtered and paginated products
+        const result = await getAllProductsService({
+            page: pageNum,
+            limit: limitNum,
+            search,
+            category,
+            minPrice: minPriceNum,
+            maxPrice: maxPriceNum,
+            sortBy: actualSortBy,
+            sortOrder: actualSortOrder,
+            saleOnly: actualSaleOnly
+        });
 
         res.status(200).json({
             success: true,
-            data: products,
+            data: result,
             message: "Products retrieved successfully."
         });
     } catch (error) {
@@ -232,6 +271,61 @@ export const setMainProductImage = async (req, res, next) => {
         console.error(error);
         next(new AppError("Server error occurred while setting main image.", 500));
     }
+};
+
+// Get products by category with search, filter, and pagination
+export const getProductsByCategory = async (req, res, next) => {
+  const { id } = req.params;
+  
+  try {
+    // Extract query parameters for search, filter, and pagination
+    const {
+      page = '1',
+      limit = '10',
+      search = '',
+      minPrice = '0',
+      maxPrice = '',
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
+      saleOnly = 'false'
+    } = req.query;
+
+    // Validate and sanitize input
+    const pageNum = Math.max(1, parseInt(page) || 1);
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit) || 10)); // Max 100 items per page
+    const minPriceNum = Math.max(0, parseFloat(minPrice) || 0);
+    let maxPriceNum = Infinity;
+    if (maxPrice && maxPrice !== 'Infinity' && maxPrice !== 'infinity') {
+        maxPriceNum = parseFloat(maxPrice) || Infinity;
+    }
+    
+    const validSortFields = ['name', 'price', 'createdAt', 'updatedAt', 'stock'];
+    const validSortOrder = ['asc', 'desc'];
+    const actualSortBy = validSortFields.includes(sortBy) ? sortBy : 'createdAt';
+    const actualSortOrder = validSortOrder.includes(sortOrder) ? sortOrder : 'desc';
+    const actualSaleOnly = saleOnly === 'true';
+
+    // Get filtered and paginated products by category
+    const result = await getProductsByCategoryService(id, {
+      page: pageNum,
+      limit: limitNum,
+      search,
+      minPrice: minPriceNum,
+      maxPrice: maxPriceNum,
+      sortBy: actualSortBy,
+      sortOrder: actualSortOrder,
+      saleOnly: actualSaleOnly
+    });
+
+    res.status(200).json({
+      success: true,
+      data: result,
+      message: "Products retrieved successfully."
+    });
+  } catch (error) {
+    console.error(error);
+    next(new AppError("Server error occurred.", 500));
+  }
 };
 
 // Delete product image

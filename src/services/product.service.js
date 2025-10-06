@@ -93,26 +93,90 @@ export const createProduct = async (productData, imageUrls = []) => {
   }
 };
 
-export const getAllProducts = async () => {
+export const getAllProducts = async (options = {}) => {
+  const {
+    page = 1,
+    limit = 10,
+    search = '',
+    category = '',
+    minPrice = 0,
+    maxPrice = Infinity,
+    sortBy = 'createdAt',
+    sortOrder = 'desc',
+    saleOnly = false
+  } = options;
+
   try {
-    const products = await prisma.product.findMany({
-      include: {
-        category: true,
-        ProductImage: {
-          orderBy: {
-            isMain: 'desc' // Main image first
+    const skip = (page - 1) * limit;
+    const whereClause = {
+      AND: [
+        search ? {
+          OR: [
+            { name: { contains: search, mode: 'insensitive' } },
+            { description: { contains: search, mode: 'insensitive' } }
+          ]
+        } : {},
+        category ? { categoryId: category } : {},
+        {
+          AND: [
+            { price: { gte: parseFloat(minPrice) || 0 } },
+            { price: { lte: parseFloat(maxPrice) || Infinity } }
+          ]
+        },
+        saleOnly ? { salePrice: { not: null } } : {}
+      ]
+    };
+
+    const [products, totalCount] = await Promise.all([
+      prisma.product.findMany({
+        where: whereClause,
+        include: {
+          category: true,
+          ProductImage: {
+            orderBy: {
+              isMain: 'desc' // Main image first
+            }
           }
+        },
+        take: parseInt(limit),
+        skip: skip,
+        orderBy: {
+          [sortBy]: sortOrder
         }
-      }
-    });
+      }),
+      prisma.product.count({ where: whereClause })
+    ]);
     
-    logger.info(`Retrieved ${products.length} products`, {
+    const totalPages = Math.ceil(totalCount / limit);
+    
+    logger.info(`Retrieved ${products.length} products from ${totalCount} total`, {
+      page,
+      limit,
+      search,
+      category,
+      minPrice,
+      maxPrice,
+      saleOnly,
       timestamp: new Date().toISOString()
     });
     
-    return products;
+    return {
+      products,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages,
+        totalItems: totalCount,
+        itemsPerPage: parseInt(limit),
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1
+      }
+    };
   } catch (error) {
-    logger.error(`Error retrieving all products: ${error.message}`, {
+    logger.error(`Error retrieving products: ${error.message}`, {
+      page,
+      limit,
+      search,
+      category,
       error: error.message,
       timestamp: new Date().toISOString()
     });
@@ -151,6 +215,91 @@ export const getProductById = async (id) => {
   } catch (error) {
     logger.error(`Error retrieving product by ID: ${error.message}`, {
       productId: id,
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+    throw error;
+  }
+};
+
+// Get products by category with pagination and filtering
+export const getProductsByCategory = async (categoryId, options = {}) => {
+  const {
+    page = 1,
+    limit = 10,
+    search = '',
+    minPrice = 0,
+    maxPrice = Infinity,
+    sortBy = 'createdAt',
+    sortOrder = 'desc',
+    saleOnly = false
+  } = options;
+
+  try {
+    const skip = (page - 1) * limit;
+    const whereClause = {
+      AND: [
+        { categoryId },
+        search ? {
+          OR: [
+            { name: { contains: search, mode: 'insensitive' } },
+            { description: { contains: search, mode: 'insensitive' } }
+          ]
+        } : {},
+        {
+          AND: [
+            { price: { gte: parseFloat(minPrice) || 0 } },
+            { price: { lte: parseFloat(maxPrice) || Infinity } }
+          ]
+        },
+        saleOnly ? { salePrice: { not: null } } : {}
+      ]
+    };
+
+    const [products, totalCount] = await Promise.all([
+      prisma.product.findMany({
+        where: whereClause,
+        include: {
+          category: true,
+          ProductImage: {
+            orderBy: {
+              isMain: 'desc' // Main image first
+            }
+          }
+        },
+        take: parseInt(limit),
+        skip: skip,
+        orderBy: {
+          [sortBy]: sortOrder
+        }
+      }),
+      prisma.product.count({ where: whereClause })
+    ]);
+    
+    const totalPages = Math.ceil(totalCount / limit);
+    
+    logger.info(`Retrieved ${products.length} products from category ${categoryId}`, {
+      page,
+      limit,
+      search,
+      categoryId,
+      timestamp: new Date().toISOString()
+    });
+    
+    return {
+      products,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages,
+        totalItems: totalCount,
+        itemsPerPage: parseInt(limit),
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1
+      }
+    };
+  } catch (error) {
+    logger.error(`Error retrieving products by category: ${error.message}`, {
+      categoryId,
       error: error.message,
       timestamp: new Date().toISOString()
     });

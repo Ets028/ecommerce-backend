@@ -178,47 +178,96 @@ Token otomatis disimpan di cookie.
 ### 📔 List Products
 
 **Endpoint:**
-`GET /api/products`
+```
 📖 Public
+
+**Query Parameters:**
+- `page` (optional, default: 1) - Page number for pagination
+- `limit` (optional, default: 10, max: 100) - Number of items per page
+- `search` (optional) - Search term for product name or description
+- `category` (optional) - Filter by category ID
+- `minPrice` (optional) - Minimum price filter
+- `maxPrice` (optional) - Maximum price filter
+- `sortBy` (optional, default: 'createdAt') - Field to sort by ('name', 'price', 'createdAt', 'updatedAt', 'stock')
+- `sortOrder` (optional, default: 'desc') - Sort order ('asc' or 'desc')
+- `saleOnly` (optional, default: 'false') - Filter for products on sale only
+
+**Example:**
+`/api/products?page=1&limit=10&search=shirt&category=cat123&minPrice=50000&maxPrice=100000&sortBy=price&sortOrder=asc&saleOnly=true`
 
 📦 **Response:**
 
 ```json
 {
   "success": true,
-  "data": [
-    {
-      "id": "cme892...",
-      "name": "T-Shirt Polos Katun",
-      "description": "Kaos nyaman bahan katun combed 30s, cocok untuk sehari-hari.",
-      "price": 75000,
-      "salePrice": 65000,    // Optional - sale price if on promotion
-      "stock": 50,
-      "imageUrl": "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=2080",
-      "createdAt": "2025-08-25T03:15:38.419Z",
-      "updatedAt": "2025-08-25T03:15:38.419Z",
-      "userId": "cmeqjohel0000flatzc6jmd86",
-      "categoryId": "cme3...",
-      "category": {
-        "id": "cme3...",
-        "name": "Pakaian",
-        "createdAt": "2025-08-25T03:15:38.410Z",
-        "updatedAt": "2025-08-25T03:15:38.410Z"
-      },
-      "ProductImage": [
-        {
-          "id": "img123",
-          "imageUrl": https://res.cloudinary.com/your-cloud-name/image/upload/v123456/product1.jpg",
-          "isMain": true,
-          "createdAt": "2025-08-25T03:15:38.410Z"
-        }
-      ]
+  "data": {
+    "products": [
+      {
+        "id": "cme892...",
+        "name": "T-Shirt Polos Katun",
+        "description": "Kaos nyaman bahan katun combed 30s, cocok untuk sehari-hari.",
+        "price": 75000,
+        "salePrice": 65000,    // Optional - sale price if on promotion
+        "stock": 50,
+        "imageUrl": "https://res.cloudinary.com/your-cloud-name/image/upload/v123456/product1.jpg",
+        "createdAt": "2025-08-25T03:15:38.419Z",
+        "updatedAt": "2025-08-25T03:15:38.419Z",
+        "userId": "cmeqjohel0000flatzc6jmd86",
+        "categoryId": "cme3...",
+        "category": {
+          "id": "cme3...",
+          "name": "Pakaian",
+          "createdAt": "2025-08-25T03:15:38.410Z",
+          "updatedAt": "2025-08-25T03:15:38.410Z"
+        },
+        "ProductImage": [
+          {
+            "id": "img123",
+            "imageUrl": "https://res.cloudinary.com/your-cloud-name/image/upload/v123456/product1.jpg",
+            "isMain": true,
+            "createdAt": "2025-08-25T03:15:38.410Z"
+          }
+        ]
+      }
+    ],
+    "pagination": {
+      "currentPage": 1,
+      "totalPages": 5,
+      "totalItems": 45,
+      "itemsPerPage": 10,
+      "hasNextPage": true,
+      "hasPrevPage": false
     }
-  ],
-  "message": "Produk berhasil diambil."
+  },
+  "message": "Products retrieved successfully."
 }
 ```
 
+---
+
+### 📔 List Products by Category
+
+**Endpoint:**
+`GET /api/products/category/:id`
+📖 Public
+
+**Query Parameters (same as above):**
+- `page` (optional, default: 1) - Page number for pagination
+- `limit` (optional, default: 10, max: 100) - Number of items per page
+- `search` (optional) - Search term for product name or description
+- `minPrice` (optional) - Minimum price filter
+- `maxPrice` (optional) - Maximum price filter
+- `sortBy` (optional, default: 'createdAt') - Field to sort by ('name', 'price', 'createdAt', 'updatedAt', 'stock')
+- `sortOrder` (optional, default: 'desc') - Sort order ('asc' or 'desc')
+- `saleOnly` (optional, default: 'false') - Filter for products on sale only
+
+**Example:**
+`/api/products/category/cat123?page=1&limit=10&search=shirt&minPrice=50000&maxPrice=100000`
+
+📦 **Response:**
+(Same structure as above but only for products in the specified category)
+
+---
 ---
 
 ### ➕ Add Product

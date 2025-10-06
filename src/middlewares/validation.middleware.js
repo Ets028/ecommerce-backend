@@ -10,6 +10,7 @@ import {
   productParamsSchema,
   imageParamsSchema,
   imageIdSchema,
+  productSearchSchema,
   createCategorySchema,
   updateCategorySchema,
   categoryIdSchema,
@@ -75,6 +76,7 @@ export const validateCreateUser = validate(createUserSchema);
 export const validateUpdateUser = validate(updateUserSchema);
 export const validateUpdateUserProfile = validate(updateUserProfileSchema);
 export const validateLoginUser = validate(loginUserSchema);
+export const validateProductSearch = validate(productSearchSchema);
 export const validateCreateProduct = validate(createProductSchema);
 export const validateUpdateProduct = validate(updateProductSchema);
 export const validateProductId = validate(productIdSchema);

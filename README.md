@@ -139,6 +139,19 @@ Fitur manajemen profil pengguna telah diimplementasikan dengan:
 
 ---
 
+## 🔍 Search, Filter & Pagination
+
+Fitur pencarian, filter, dan pagination telah diimplementasikan dengan:
+
+- **Pencarian global**: Pencarian berdasarkan nama produk atau deskripsi
+- **Filter lengkap**: Filter berdasarkan harga, kategori, dan produk diskon
+- **Pagination**: Sistem halaman untuk mengatur jumlah item per halaman
+- **Sorting**: Pengurutan berdasarkan berbagai kriteria (harga, nama, tanggal, stok)
+- **Parameter fleksibel**: Query parameter untuk mengatur semua fitur pencarian
+- **Endpoint khusus**: Endpoint untuk pencarian produk berdasarkan kategori
+
+---
+
 ## 📚 Dokumentasi API
 
 Cek [API_DOCUMENTATION.md](./docs/API_DOCUMENTATION.md)

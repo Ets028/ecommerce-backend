@@ -110,6 +110,23 @@ export const imageIdSchema = z.object({
   imageId: z.string().cuid('Invalid image ID format'),
 });
 
+// Search and filter validation schemas
+export const productSearchSchema = z.object({
+  page: z.string().regex(/^\d+$/).transform(Number).refine(val => val >= 1, {
+    message: "Page must be greater than or equal to 1"
+  }).optional().default('1'),
+  limit: z.string().regex(/^\d+$/).transform(Number).refine(val => val >= 1 && val <= 100, {
+    message: "Limit must be between 1 and 100"
+  }).optional().default('10'),
+  search: z.string().optional().default(''),
+  category: z.string().cuid('Invalid category ID format').optional(),
+  minPrice: z.string().regex(/^\d+(\.\d+)?$/).transform(Number).optional().default('0'),
+  maxPrice: z.string().regex(/^\d+(\.\d+)?$/).transform(Number).optional().default('Infinity'),
+  sortBy: z.enum(['name', 'price', 'createdAt', 'updatedAt', 'stock']).optional().default('createdAt'),
+  sortOrder: z.enum(['asc', 'desc']).optional().default('desc'),
+  saleOnly: z.enum(['true', 'false']).optional().default('false'),
+});
+
 // Validation helper function
 export const validateWithSchema = (schema, data) => {
   try {
