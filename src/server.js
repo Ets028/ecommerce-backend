@@ -4,6 +4,7 @@ import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import passport from 'passport';
 import authRoutes from './routes/auth.routes.js';
 import userRoutes from './routes/user.routes.js';
 import categoryRoutes from './routes/category.routes.js';
@@ -11,6 +12,7 @@ import productRoutes from './routes/product.routes.js';
 import cartRoutes from './routes/cart.routes.js';
 import orderRoutes from './routes/order.routes.js';
 import paymentRoutes from './routes/payment.routes.js';
+import googleAuthRoutes from './routes/googleAuth.routes.js';
 import { globalErrorHandler, notFoundHandler } from './utils/errorHandler.js';
 import logger from './config/logger.js';
 import { requestLogger, errorLogger } from './middlewares/logging.middleware.js';
@@ -34,6 +36,9 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 
+// Initialize Passport for Google OAuth
+app.use(passport.initialize());
+
 // Static file serving is no longer needed for product images as they are stored on Cloudinary
 // app.use('/images', express.static(path.join(__dirname, 'public/images')));
 
@@ -45,6 +50,7 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api/auth', authRoutes);
+app.use('/api/auth', googleAuthRoutes);  // Google auth routes under /api/auth
 app.use('/api/user', userRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/cart', cartRoutes);

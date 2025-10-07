@@ -69,6 +69,62 @@ Token otomatis disimpan di cookie.
 
 ---
 
+### 🔐 Google Login
+
+
+**Endpoint:**
+
+`GET /api/auth/google`
+
+📖 Public
+
+
+📦 **Redirect:**
+
+Redirects to Google OAuth login page.
+
+
+---
+
+
+### 🔐 Google Login Callback
+
+
+**Endpoint:**
+
+`GET /api/auth/google/callback`
+
+📖 Public
+
+
+⚠️ **Catatan:**
+
+This is the callback URL that Google redirects to after successful authentication.
+
+
+📦 **Response:**
+
+
+```json
+
+{
+  "success": true,
+  "message": "Google authentication successful",
+  "data": {
+    "user": {
+      "id": "cmeqjohel0000flatzc6jmd86",
+      "email": "user@gmail.com",
+      "name": "John Doe",
+      "avatarUrl": "https://lh3.googleusercontent.com/...",
+      "role": "user",
+      "profileCompleted": false
+    },
+    "token": "jwt_token_here"
+  }
+}
+
+```
+
 ## 👤 User
 
 ### 👤 Get Profile

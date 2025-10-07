@@ -38,11 +38,17 @@ export const login = async (req, res, next) => {
       return next(new AppError("Invalid email or password.", 401));
     }
 
-    // Verify password
+    // Check if user has a password set (OAuth users may not have one)
+    if (!user.password) {
+      return next(new AppError("This account uses Google authentication. Please sign in with Google.", 400));
+    }
+
+    // Verify password for regular users
     const isPasswordValid = await validatePassword(password, user.password);
     if (!isPasswordValid) {
       return next(new AppError("Invalid email or password.", 401));
     }
+    
     //generate token
     const token = generateToken({ userId: user.id }, "7d");
     setAuthCookie(res, token);

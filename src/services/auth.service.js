@@ -31,10 +31,14 @@ export const findUserByEmail = async (email) => {
 };
 
 export const createUser = async (userData) => {
-  const { name, email, password, role = "user" } = userData;
+  const { name, email, password, role = "user", avatarUrl } = userData;
   
   try {
-    const hashedPassword = await hashPassword(password);
+    // Only hash the password if it's provided (not for OAuth users)
+    let hashedPassword = null;
+    if (password && password.length > 0) {
+      hashedPassword = await hashPassword(password);
+    }
     
     // Create user and associated profile in a transaction
     const user = await prisma.$transaction(async (tx) => {
@@ -42,8 +46,9 @@ export const createUser = async (userData) => {
         data: {
           name,
           email,
-          password: hashedPassword,
+          password: hashedPassword, // null for OAuth users
           role,
+          avatarUrl: avatarUrl || null, // Set avatar URL if provided
         },
       });
       
@@ -77,6 +82,12 @@ export const createUser = async (userData) => {
 
 export const validatePassword = async (password, hashedPassword) => {
   try {
+    // If no hashed password exists (OAuth user), return false
+    if (!hashedPassword) {
+      logger.info('Password validation skipped - no password set (OAuth user)');
+      return false;
+    }
+    
     const isValid = await comparePassword(password, hashedPassword);
     
     logger.info(`Password validation completed`, {

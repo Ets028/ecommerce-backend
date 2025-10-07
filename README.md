@@ -152,6 +152,20 @@ Fitur pencarian, filter, dan pagination telah diimplementasikan dengan:
 
 ---
 
+## 🔐 Google OAuth Integration
+
+Fitur otentikasi Google OAuth 2.0 telah diimplementasikan dengan:
+
+- **Passport.js**: Menggunakan Passport.js dengan strategi Google OAuth20
+- **User Registration**: Otomatis membuat user baru saat login pertama kali via Google
+- **Profile Management**: Mengintegrasikan dengan sistem manajemen profil pengguna
+- **Avatar Sync**: Menyinkronkan avatar dari profil Google ke sistem
+- **Dual Login**: Mendukung login dengan email/password dan Google OAuth
+- **Secure JWT**: Menggunakan token JWT untuk manajemen sesi
+- **Environment Config**: Konfigurasi client ID dan secret melalui variabel lingkungan
+
+---
+
 ## 📚 Dokumentasi API
 
 Cek [API_DOCUMENTATION.md](./docs/API_DOCUMENTATION.md)
