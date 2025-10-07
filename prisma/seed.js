@@ -14,58 +14,52 @@ async function main() {
   await prisma.productImage.deleteMany();
   await prisma.product.deleteMany();
   await prisma.category.deleteMany();
+  await prisma.userProfile.deleteMany();
   await prisma.user.deleteMany();
 
   console.log('Data lama terhapus!');
 
-  // 1. Buat Admin dan Users
-  console.log('Membuat users...');
-  const adminPassword = await bcrypt.hash('password123', 10);
-  const admin = await prisma.user.create({
-    data: {
-      name: 'Admin',
-      email: 'admin@example.com',
-      password: adminPassword,
-      role: 'admin',
-      profileCompleted: true,
-      phone: faker.phone.number(),
-      address: faker.location.streetAddress(),
-      city: faker.location.city(),
-      province: faker.location.state(),
-      postalCode: faker.location.zipCode(),
-      country: 'Indonesia',
-    },
-  });
-
+  // 1. Buat 10 Users dengan role user
+  console.log('Membuat 10 users...');
   const users = [];
-  for (let i = 0; i < 9; i++) {
-    const userPassword = await bcrypt.hash('password123', 10);
+  for (let i = 0; i < 10; i++) {
     const user = await prisma.user.create({
       data: {
         name: faker.person.fullName(),
         email: `user${i + 1}@example.com`,
-        password: userPassword,
-        profileCompleted: faker.datatype.boolean(),
-        phone: faker.phone.number(),
-        address: faker.location.streetAddress(),
-        city: faker.location.city(),
-        province: faker.location.state(),
-        postalCode: faker.location.zipCode(),
-        country: 'Indonesia',
+        password: await bcrypt.hash('password123', 10),
+        role: 'user',
+        avatarUrl: faker.image.avatar(),
+        userProfile: {
+          create: {
+            phone: faker.phone.number(),
+            address: faker.location.streetAddress(),
+            city: faker.location.city(),
+            province: faker.location.state(),
+            postalCode: faker.location.zipCode(),
+            country: 'Indonesia',
+            profileCompleted: faker.datatype.boolean(),
+          },
+        },
+      },
+      include: {
+        userProfile: true,
       },
     });
     users.push(user);
   }
-  const allUsers = [admin, ...users];
 
-  // 2. Buat Categories (Root/Parent & Children)
-  console.log('Membuat categories...');
+  // 2. Buat 20 Categories dengan parent-child relationship
+  console.log('Membuat 20 categories...');
   
-  // Buat 5 root categories (tanpa parent)
+  // Buat 8 root categories
   const rootCategories = [];
-  const rootCategoryNames = ['Elektronik', 'Fashion', 'Rumah Tangga', 'Olahraga', 'Kecantikan'];
+  const rootCategoryNames = [
+    'Elektronik', 'Fashion', 'Rumah Tangga', 'Olahraga', 
+    'Kecantikan', 'Otomotif', 'Hobi', 'Makanan & Minuman'
+  ];
   
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < 8; i++) {
     const rootCategory = await prisma.category.create({
       data: {
         name: rootCategoryNames[i],
@@ -74,32 +68,24 @@ async function main() {
     rootCategories.push(rootCategory);
   }
 
-  // Buat 15 child categories dengan nama yang lebih spesifik
-  const childCategoriesData = [
-    // Child untuk Elektronik
+  // Buat 12 child categories
+  const childCategories = [];
+  const childCategoryNames = [
     { name: 'Smartphone', parent: rootCategories[0] },
     { name: 'Laptop', parent: rootCategories[0] },
-    { name: 'Tablet', parent: rootCategories[0] },
-    // Child untuk Fashion
     { name: 'Pakaian Pria', parent: rootCategories[1] },
     { name: 'Pakaian Wanita', parent: rootCategories[1] },
-    { name: 'Sepatu', parent: rootCategories[1] },
-    { name: 'Aksesoris', parent: rootCategories[1] },
-    // Child untuk Rumah Tangga
     { name: 'Perabotan Dapur', parent: rootCategories[2] },
-    { name: 'Dekorasi', parent: rootCategories[2] },
-    { name: 'Kebersihan', parent: rootCategories[2] },
-    // Child untuk Olahraga
+    { name: 'Dekorasi Rumah', parent: rootCategories[2] },
     { name: 'Alat Fitness', parent: rootCategories[3] },
     { name: 'Sepatu Olahraga', parent: rootCategories[3] },
-    { name: 'Pakaian Olahraga', parent: rootCategories[3] },
-    // Child untuk Kecantikan
     { name: 'Skincare', parent: rootCategories[4] },
     { name: 'Makeup', parent: rootCategories[4] },
+    { name: 'Aksesoris Mobil', parent: rootCategories[5] },
+    { name: 'Perawatan Motor', parent: rootCategories[5] },
   ];
 
-  const childCategories = [];
-  for (const childData of childCategoriesData) {
+  for (const childData of childCategoryNames) {
     const childCategory = await prisma.category.create({
       data: {
         name: childData.name,
@@ -111,45 +97,52 @@ async function main() {
 
   const allCategories = [...rootCategories, ...childCategories];
 
-  // 3. Buat Products dengan gambar
-  console.log('Membuat products...');
+  // 3. Buat 20 Products dengan 3 images each
+  console.log('Membuat 20 products dengan 3 images each...');
   const products = [];
-  const productImages = [
-    'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500', // Headphones
-    'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=500', // Camera
-    'https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=500',   // Smartwatch
-    'https://images.unsplash.com/photo-1560769629-975ec94e6a86?w=500',  // Sneakers
-    'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500', // Running Shoes
-    'https://images.unsplash.com/photo-1585386959984-a4155224a1ad?w=500', // Perfume
-    'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=500', // Nike Shoes
-    'https://images.unsplash.com/photo-1605787020600-b9ebd5df1d07?w=500', // Kitchen
-    'https://images.unsplash.com/photo-1504274066651-8d31a536b11a?w=500', // Dress
-    'https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=500', // Sunglasses
+  const productImageUrls = [
+    'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&h=500&fit=crop', // Headphones
+    'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=500&h=500&fit=crop', // Camera
+    'https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=500&h=500&fit=crop',   // Smartwatch
+    'https://images.unsplash.com/photo-1560769629-975ec94e6a86?w=500&h=500&fit=crop',  // Sneakers
+    'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&h=500&fit=crop', // Running Shoes
+    'https://images.unsplash.com/photo-1585386959984-a4155224a1ad?w=500&h=500&fit=crop', // Perfume
+    'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=500&h=500&fit=crop', // Nike Shoes
+    'https://images.unsplash.com/photo-1605787020600-b9ebd5df1d07?w=500&h=500&fit=crop', // Kitchen
+    'https://images.unsplash.com/photo-1504274066651-8d31a536b11a?w=500&h=500&fit=crop', // Dress
+    'https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=500&h=500&fit=crop', // Sunglasses
+    'https://images.unsplash.com/photo-1485955900006-10f4d324d411?w=500&h=500&fit=crop', // Fashion
+    'https://images.unsplash.com/photo-1586495777744-4413f21062fa?w=500&h=500&fit=crop', // Beauty
+    'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=500&h=500&fit=crop', // Health
+    'https://images.unsplash.com/photo-1560343090-f0409e92791a?w=500&h=500&fit=crop', // Clothing
+    'https://images.unsplash.com/photo-1571781926291-c477ebfd024b?w=500&h=500&fit=crop', // Electronics
   ];
 
   for (let i = 0; i < 20; i++) {
-    const basePrice = parseFloat(faker.commerce.price({ min: 50000, max: 500000 }));
+    const basePrice = parseFloat(faker.commerce.price({ min: 25000, max: 2500000 }));
+    const hasSale = Math.random() > 0.7;
+    
     const product = await prisma.product.create({
       data: {
         name: faker.commerce.productName(),
         description: faker.commerce.productDescription(),
         price: basePrice,
-        salePrice: Math.random() > 0.7 ? basePrice * 0.8 : null,
+        salePrice: hasSale ? basePrice * faker.number.float({ min: 0.6, max: 0.9 }) : null,
         stock: faker.number.int({ min: 0, max: 100 }),
-        userId: allUsers[Math.floor(Math.random() * allUsers.length)].id,
+        userId: users[Math.floor(Math.random() * users.length)].id,
         categoryId: allCategories[Math.floor(Math.random() * allCategories.length)].id,
         ProductImage: {
           create: [
             {
-              imageUrl: productImages[i % productImages.length],
+              imageUrl: productImageUrls[i % productImageUrls.length],
               isMain: true,
             },
             {
-              imageUrl: productImages[(i + 1) % productImages.length],
+              imageUrl: productImageUrls[(i + 1) % productImageUrls.length],
               isMain: false,
             },
             {
-              imageUrl: productImages[(i + 2) % productImages.length],
+              imageUrl: productImageUrls[(i + 2) % productImageUrls.length],
               isMain: false,
             },
           ],
@@ -162,16 +155,16 @@ async function main() {
     products.push(product);
   }
 
-  // 4. Buat Cart Items dengan kombinasi unik
-  console.log('Membuat cart items...');
+  // 4. Buat 5 Cart Items
+  console.log('Membuat 5 cart items...');
   const cartItemsCreated = new Set();
   
-  for (let i = 0; i < 20; i++) {
+  for (let i = 0; i < 5; i++) {
     let userId, productId, key;
     
     // Cari kombinasi user-product yang belum ada
     do {
-      userId = allUsers[Math.floor(Math.random() * allUsers.length)].id;
+      userId = users[Math.floor(Math.random() * users.length)].id;
       productId = products[Math.floor(Math.random() * products.length)].id;
       key = `${userId}-${productId}`;
     } while (cartItemsCreated.has(key));
@@ -182,17 +175,18 @@ async function main() {
       data: {
         productId: productId,
         userId: userId,
-        quantity: faker.number.int({ min: 1, max: 5 }),
+        quantity: faker.number.int({ min: 1, max: 3 }),
       },
     });
   }
 
-  // 5. Buat Orders dan Order Items
-  console.log('Membuat orders...');
-  for (let i = 0; i < 20; i++) {
+  // 5. Buat 5 Orders dengan Order Items
+  console.log('Membuat 5 orders...');
+  for (let i = 0; i < 5; i++) {
+    const orderUser = users[Math.floor(Math.random() * users.length)];
     const order = await prisma.order.create({
       data: {
-        userId: allUsers[Math.floor(Math.random() * allUsers.length)].id,
+        userId: orderUser.id,
         total: 0,
         status: faker.helpers.arrayElement(['pending', 'processing', 'shipped', 'delivered']),
         paymentStatus: faker.helpers.arrayElement(['pending', 'paid', 'failed']),
@@ -200,13 +194,13 @@ async function main() {
       },
     });
 
-    // Buat 1-3 order items per order
+    // Buat 1-2 order items per order
     let orderTotal = 0;
-    const itemsCount = faker.number.int({ min: 1, max: 3 });
+    const itemsCount = faker.number.int({ min: 1, max: 2 });
     
     for (let j = 0; j < itemsCount; j++) {
       const product = products[Math.floor(Math.random() * products.length)];
-      const quantity = faker.number.int({ min: 1, max: 3 });
+      const quantity = faker.number.int({ min: 1, max: 2 });
       const price = product.salePrice || product.price;
       orderTotal += price * quantity;
 
@@ -227,15 +221,20 @@ async function main() {
     });
   }
 
-  console.log('Seed data berhasil dibuat!');
+  // Tampilkan summary
+  console.log('\n✅ Seed data berhasil dibuat!');
   console.log('='.repeat(50));
-  console.log(`Admin: admin@example.com / password123`);
-  console.log(`Total Users: ${allUsers.length}`);
-  console.log(`Total Root Categories: ${rootCategories.length}`);
-  console.log(`Total Child Categories: ${childCategories.length}`);
-  console.log(`Total Products: ${products.length}`);
+  console.log(`📊 SUMMARY:`);
+  console.log(`👥 Users: ${users.length} (semua role: user)`);
+  console.log(`🏷️  Categories: ${allCategories.length} (${rootCategories.length} root, ${childCategories.length} child)`);
+  console.log(`📦 Products: ${products.length} (masing-masing dengan 3 images)`);
+  console.log(`🛒 Cart Items: 5`);
+  console.log(`🧾 Orders: 5`);
   console.log('='.repeat(50));
-  console.log('Root Categories:');
+  console.log('\n🔐 Login credentials untuk testing:');
+  console.log('Email: user1@example.com');
+  console.log('Password: password123');
+  console.log('\n📁 Root Categories:');
   rootCategories.forEach((cat, index) => {
     console.log(`  ${index + 1}. ${cat.name}`);
   });
@@ -243,7 +242,7 @@ async function main() {
 
 main()
   .catch((e) => {
-    console.error('Error saat seeding:', e);
+    console.error('❌ Error saat seeding:', e);
     process.exit(1);
   })
   .finally(async () => {

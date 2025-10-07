@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import passport from 'passport';
+import './config/passport.js'; // Import passport configuration to register strategies
 import authRoutes from './routes/auth.routes.js';
 import userRoutes from './routes/user.routes.js';
 import categoryRoutes from './routes/category.routes.js';

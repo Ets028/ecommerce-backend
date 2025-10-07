@@ -108,24 +108,46 @@ export const getAllProducts = async (options = {}) => {
 
   try {
     const skip = (page - 1) * limit;
-    const whereClause = {
-      AND: [
-        search ? {
-          OR: [
-            { name: { contains: search, mode: 'insensitive' } },
-            { description: { contains: search, mode: 'insensitive' } }
-          ]
-        } : {},
-        category ? { categoryId: category } : {},
-        {
-          AND: [
-            { price: { gte: parseFloat(minPrice) || 0 } },
-            { price: { lte: parseFloat(maxPrice) || Infinity } }
-          ]
-        },
-        saleOnly ? { salePrice: { not: null } } : {}
-      ]
-    };
+    const whereConditions = [];
+
+    if (search) {
+      whereConditions.push({
+        OR: [
+          { name: { contains: search, mode: 'insensitive' } },
+          { description: { contains: search, mode: 'insensitive' } }
+        ]
+      });
+    }
+
+    if (category) {
+      whereConditions.push({ categoryId: category });
+    }
+
+    // Add price range filter
+    const priceFilter = {};
+    if (typeof minPrice !== 'undefined' && minPrice !== null && minPrice !== '') {
+      const minPriceValue = parseFloat(minPrice);
+      if (!isNaN(minPriceValue)) {
+        priceFilter.gte = minPriceValue;
+      }
+    }
+
+    if (maxPrice !== Infinity && typeof maxPrice !== 'undefined' && maxPrice !== null && maxPrice !== '') {
+      const maxPriceValue = parseFloat(maxPrice);
+      if (!isNaN(maxPriceValue)) {
+        priceFilter.lte = maxPriceValue;
+      }
+    }
+
+    if (Object.keys(priceFilter).length > 0) {
+      whereConditions.push({ price: priceFilter });
+    }
+
+    if (saleOnly) {
+      whereConditions.push({ salePrice: { not: null } });
+    }
+
+    const whereClause = whereConditions.length > 0 ? { AND: whereConditions } : {};
 
     const [products, totalCount] = await Promise.all([
       prisma.product.findMany({
@@ -237,24 +259,44 @@ export const getProductsByCategory = async (categoryId, options = {}) => {
 
   try {
     const skip = (page - 1) * limit;
-    const whereClause = {
-      AND: [
-        { categoryId },
-        search ? {
-          OR: [
-            { name: { contains: search, mode: 'insensitive' } },
-            { description: { contains: search, mode: 'insensitive' } }
-          ]
-        } : {},
-        {
-          AND: [
-            { price: { gte: parseFloat(minPrice) || 0 } },
-            { price: { lte: parseFloat(maxPrice) || Infinity } }
-          ]
-        },
-        saleOnly ? { salePrice: { not: null } } : {}
-      ]
-    };
+    const whereConditions = [
+      { categoryId }  // Always filter by category ID
+    ];
+
+    if (search) {
+      whereConditions.push({
+        OR: [
+          { name: { contains: search, mode: 'insensitive' } },
+          { description: { contains: search, mode: 'insensitive' } }
+        ]
+      });
+    }
+
+    // Add price range filter
+    const priceFilter = {};
+    if (typeof minPrice !== 'undefined' && minPrice !== null && minPrice !== '') {
+      const minPriceValue = parseFloat(minPrice);
+      if (!isNaN(minPriceValue)) {
+        priceFilter.gte = minPriceValue;
+      }
+    }
+
+    if (maxPrice !== Infinity && typeof maxPrice !== 'undefined' && maxPrice !== null && maxPrice !== '') {
+      const maxPriceValue = parseFloat(maxPrice);
+      if (!isNaN(maxPriceValue)) {
+        priceFilter.lte = maxPriceValue;
+      }
+    }
+
+    if (Object.keys(priceFilter).length > 0) {
+      whereConditions.push({ price: priceFilter });
+    }
+
+    if (saleOnly) {
+      whereConditions.push({ salePrice: { not: null } });
+    }
+
+    const whereClause = whereConditions.length > 0 ? { AND: whereConditions } : {};
 
     const [products, totalCount] = await Promise.all([
       prisma.product.findMany({
