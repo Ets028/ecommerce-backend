@@ -9,6 +9,7 @@ import {
     addImagesToProduct,
     setMainProductImage,
     deleteProductImage,
+    getProductsByCategory,
     uploadMultipleImages
 } from '../controllers/product.controller.js';
 import { authRequired } from '../middlewares/auth.middleware.js';
@@ -19,7 +20,8 @@ import {
     validateProductId, 
     validateProductParams, 
     validateImageParams, 
-    validateImageId 
+    validateImageId,
+    validateCategoryId
 } from '../middlewares/validation.middleware.js';
 
 const router = express.Router();
