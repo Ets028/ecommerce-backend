@@ -15,21 +15,31 @@ model User {
   avatarUrl String?  @default("https://avatar.iran.liara.run/public")
   role      String   @default("user")
   createdAt DateTime @default(now())
-  
-  // Profile Information
-  profileCompleted Boolean @default(false)  // Whether user has filled profile info
-  phone            String?
-  address          String?
-  city             String?
-  province         String?
-  postalCode       String?
-  country          String? @default("Indonesia")
+
+  // One-to-one relationship with UserProfile
+  userProfile UserProfile?
 
   products Product[]  @relation("UserProducts")
   cartItem cartItem[]
 
   Order Order[]
   @@map("users")
+}
+
+model UserProfile {
+  id             String @id @default(cuid())
+  userId         String @unique  // One-to-one relationship with User
+  phone          String?
+  address        String?
+  city           String?
+  province       String?
+  postalCode     String?
+  country        String? @default("Indonesia")
+  profileCompleted Boolean @default(false)  // Whether user has filled profile info
+  
+  user User @relation(fields: [userId], references: [id])
+  
+  @@map("user_profiles")
 }
 
 model Category {

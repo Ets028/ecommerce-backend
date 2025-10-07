@@ -36,16 +36,29 @@ export const createUser = async (userData) => {
   try {
     const hashedPassword = await hashPassword(password);
     
-    const user = await prisma.user.create({
-      data: {
-        name,
-        email,
-        password: hashedPassword,
-        role,
-      },
+    // Create user and associated profile in a transaction
+    const user = await prisma.$transaction(async (tx) => {
+      const newUser = await tx.user.create({
+        data: {
+          name,
+          email,
+          password: hashedPassword,
+          role,
+        },
+      });
+      
+      // Create an empty profile for the user
+      await tx.userProfile.create({
+        data: {
+          userId: newUser.id,
+          profileCompleted: false // Profile is not completed initially
+        }
+      });
+      
+      return newUser;
     });
     
-    logger.info(`User created successfully`, {
+    logger.info(`User created successfully with profile`, {
       userId: user.id,
       userEmail: user.email,
       timestamp: new Date().toISOString()
