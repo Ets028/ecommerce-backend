@@ -234,7 +234,7 @@ This is the callback URL that Google redirects to after successful authenticatio
 ### 📔 List Products
 
 **Endpoint:**
-```
+`GET /api/products`
 📖 Public
 
 **Query Parameters:**
@@ -265,7 +265,6 @@ This is the callback URL that Google redirects to after successful authenticatio
         "price": 75000,
         "salePrice": 65000,    // Optional - sale price if on promotion
         "stock": 50,
-        "imageUrl": "https://res.cloudinary.com/your-cloud-name/image/upload/v123456/product1.jpg",
         "createdAt": "2025-08-25T03:15:38.419Z",
         "updatedAt": "2025-08-25T03:15:38.419Z",
         "userId": "cmeqjohel0000flatzc6jmd86",

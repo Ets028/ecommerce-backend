@@ -166,6 +166,11 @@ export const getProductById = async (req, res, next) => {
     const { id } = req.params;
 
     try {
+        // Validate that the ID is not null/undefined before calling service
+        if (!id) {
+            return next(new AppError("Product ID is required.", 400));
+        }
+
         // Get product by ID
         const product = await getProductByIdService(id);
 

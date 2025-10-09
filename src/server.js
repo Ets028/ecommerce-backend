@@ -31,7 +31,7 @@ const __dirname = path.dirname(__filename);
 app.use(requestLogger);
 
 app.use(cors({
-    origin: 'http://localhost:3000',
+    origin: process.env.CORS_ORIGIN,
     credentials: true
 }));
 app.use(express.json());
@@ -51,7 +51,7 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api/auth', authRoutes);
-app.use('/api/auth', googleAuthRoutes);  // Google auth routes under /api/auth
+app.use('/api/auth', googleAuthRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/cart', cartRoutes);

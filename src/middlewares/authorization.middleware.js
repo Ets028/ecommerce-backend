@@ -34,3 +34,10 @@ export const authorizeRoles = (...roles) => {
 export const isAdmin = authorizeRoles('admin');
 export const isUser = authorizeRoles('user');
 export const isAdminOrUser = authorizeRoles('admin', 'user');
+
+// Backward compatibility - previously was in admin.middleware.js
+export const adminOnly = isAdmin;
+
+// Functions that were previously in utils/auth.middleware.js
+export const requireAdmin = isAdmin;
+export const requireUserOrAdmin = isAdminOrUser;

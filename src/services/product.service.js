@@ -35,7 +35,7 @@ export const createProduct = async (productData, imageUrls = []) => {
   
   try {
     const result = await prisma.$transaction(async (tx) => {
-      // Create the product
+      // Create the product without imageUrl field since it's been removed
       const product = await tx.product.create({
         data: {
           name,
@@ -45,8 +45,6 @@ export const createProduct = async (productData, imageUrls = []) => {
           stock: parseInt(stock, 10),
           userId,
           categoryId: categoryId || null,
-          // Set the first image as the main image URL if provided
-          imageUrl: imageUrls.length > 0 ? imageUrls[0] : null,
         },
       });
 
@@ -208,18 +206,26 @@ export const getAllProducts = async (options = {}) => {
 
 export const getProductById = async (id) => {
   try {
+    if (!id) {
+      logger.warn(`Product ID is null or undefined`, {
+        productId: id,
+        timestamp: new Date().toISOString()
+      });
+      return null;
+    }
+
     const product = await prisma.product.findUnique({
       where: { id },
       include: {
         category: true,
         ProductImage: {
           orderBy: {
-            isMain: 'desc' // Main image first
+            isMain: 'desc'
           }
         }
       }
     });
-    
+
     if (product) {
       logger.info(`Product retrieved by ID`, {
         productId: id,
@@ -232,7 +238,7 @@ export const getProductById = async (id) => {
         timestamp: new Date().toISOString()
       });
     }
-    
+
     return product;
   } catch (error) {
     logger.error(`Error retrieving product by ID: ${error.message}`, {
@@ -479,12 +485,6 @@ export const setMainImage = async (productId, imageId) => {
       const updatedImage = await tx.productImage.update({
         where: { id: imageId },
         data: { isMain: true },
-      });
-
-      // Update the product's main imageUrl field
-      await tx.product.update({
-        where: { id: productId },
-        data: { imageUrl: updatedImage.imageUrl },
       });
 
       return updatedImage;

@@ -28,7 +28,7 @@ const router = express.Router();
 
 // Public routes - users can explore products
 router.get('/', getProducts);
-router.get('/:id', validateProductId, getProductById);
+router.get('/:id', getProductById);
 router.get('/category/:id', validateCategoryId, getProductsByCategory);
 
 // Admin routes - only admin can manage products
