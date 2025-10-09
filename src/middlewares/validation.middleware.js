@@ -6,7 +6,6 @@ import {
   updateUserAvatarSchema,
   createProductSchema,
   updateProductSchema,
-  productIdSchema,
   productParamsSchema,
   imageParamsSchema,
   imageIdSchema,
@@ -37,28 +36,8 @@ export const validate = (schema) => {
       // If validation passes, add the validated data to req object
       req.validatedData = validatedData;
       
-      // Also update the original request objects with validated data
-      // This ensures type safety and removes additional properties
-      req.body = Object.keys(req.body).reduce((acc, key) => {
-        if (validatedData.hasOwnProperty(key)) {
-          acc[key] = validatedData[key];
-        }
-        return acc;
-      }, {});
-      
-      req.params = Object.keys(req.params).reduce((acc, key) => {
-        if (validatedData.hasOwnProperty(key)) {
-          acc[key] = validatedData[key];
-        }
-        return acc;
-      }, {});
-      
-      req.query = Object.keys(req.query).reduce((acc, key) => {
-        if (validatedData.hasOwnProperty(key)) {
-          acc[key] = validatedData[key];
-        }
-        return acc;
-      }, {});
+      // Don't modify the original request objects to avoid the getter/setter error
+      // Instead, just store the validated data in req.validatedData
 
       next();
     } catch (error) {
@@ -79,7 +58,6 @@ export const validateLoginUser = validate(loginUserSchema);
 export const validateProductSearch = validate(productSearchSchema);
 export const validateCreateProduct = validate(createProductSchema);
 export const validateUpdateProduct = validate(updateProductSchema);
-export const validateProductId = validate(productIdSchema);
 export const validateProductParams = validate(productParamsSchema);
 export const validateImageParams = validate(imageParamsSchema);
 export const validateImageId = validate(imageIdSchema);
